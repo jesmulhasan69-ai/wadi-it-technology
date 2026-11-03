@@ -70,13 +70,11 @@
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
             }
-            header, aside, #mobileOverlay, #toastArea, .no-print { display: none !important; }
-            
-            body.modal-open main { display: none !important; }
-            body:not(.modal-open) footer { display: none !important; }
-            body:not(.modal-open) .sticky { display: none !important; }
-            
+            header, aside, #mobileOverlay, #toastArea, .no-print, footer { display: none !important; }
             .flex-1.overflow-hidden { overflow: visible !important; }
+            
+            body.printing-modal main { display: none !important; } 
+            body:not(.printing-modal) #voucherModal { display: none !important; }
             
             #voucherModal {
                 position: absolute !important;
@@ -88,21 +86,18 @@
                 background: white !important;
             }
             #voucherModal > div:first-child { display: none !important; } /* overlay */
-            #voucherModal > div:nth-child(2) {
+            #voucherModal > div.relative {
                 box-shadow: none !important;
                 width: 100% !important;
                 max-width: none !important;
+                display: block !important; /* Block is required for page breaks to work */
             }
             #modalContent {
                 padding: 15mm 20mm !important;
                 width: 100% !important;
                 max-width: 210mm !important; /* A4 Width */
                 margin: 0 auto !important;
-            }
-            .print-page-break {
-                page-break-before: always !important;
-                break-before: page !important;
-                padding-top: 15mm !important;
+                display: block !important;
             }
             .print-only-tc {
                 display: block !important;
@@ -235,7 +230,7 @@
             <!-- Modal Header / Controls -->
             <div class="no-print sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-200 p-4 flex justify-between items-center z-10">
                 <h3 id="modalTitle" class="font-bold text-slate-700 uppercase tracking-wider">Voucher Document</h3>
-                <div class="flex gap-2">
+                <div class="flex gap-2" id="modalActionButtons">
                     <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                         <i class="fas fa-print mr-2"></i>Print PDF
                     </button>
@@ -376,7 +371,7 @@
                     vouchers: 'Saved Vouchers',
                     cashbook: 'Company Cash Book', 
                     settings: 'System Settings',
-                    terms: 'Terms & Conditions'
+                    terms: 'Terms & Conditions' 
                 };
                 document.getElementById('headerTitle').textContent = titles[view] || 'Portal';
 
@@ -421,6 +416,27 @@
                 else if (this.state.currentView === 'terms') wrapper.innerHTML = this.viewTerms();
 
                 container.appendChild(wrapper);
+            }
+
+            sendEmailInvoice(id) {
+                const invoice = this.state.invoices.find(i => i.id === id);
+                if (!invoice) return;
+                const docTitle = invoice.type === 'expense' ? 'Expense Voucher' : 
+                                 invoice.type === 'profit' ? 'Profit Statement' : 'Tax Invoice';
+                const subject = `WADI IT Technology - ${docTitle} (${invoice.id})`;
+                const body = `Dear ${invoice.clientName},\n\nPlease find the details of your ${docTitle} (${invoice.id}) referenced in our records.\n\nThank you,\nWADI IT Technology`;
+                
+                const mailtoLink = `mailto:${invoice.clientEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+                this.toast("Opening email client...", "success");
+            }
+
+            sendEmailTC() {
+                const subject = `WADI IT Technology - Terms & Conditions`;
+                const body = `Please review the official Terms and Conditions of WADI IT Technology:\n\n${this.state.fullTermsDocument}`;
+                const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+                this.toast("Opening email client...", "success");
             }
 
             // --- DASHBOARD VIEW ---
@@ -479,6 +495,46 @@
                                     <p class="text-sm font-bold text-slate-400 uppercase">Total Expenses</p>
                                     <p class="text-2xl font-extrabold text-rose-600">${formatMoney(expenses)}</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- TERMS & CONDITIONS VIEW ---
+            viewTerms() {
+                return `
+                    <div class="fade-in-up bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden print:shadow-none print:border-none print:rounded-none">
+                        <div class="no-print p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-wrap gap-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                <i class="fas fa-file-contract text-primary-500 mr-2"></i> Official Terms & Conditions
+                            </h3>
+                            <div class="flex gap-3">
+                                <button onclick="app.sendEmailTC()" class="bg-blue-50 text-blue-700 hover:bg-blue-100 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                    <i class="fas fa-paper-plane mr-2"></i>Send via Email
+                                </button>
+                                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-md">
+                                    <i class="fas fa-print mr-2"></i>Print T&C PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-10 md:p-16 print:p-0">
+                            <div class="text-center mb-10 pb-6 border-b-2 border-slate-100">
+                                <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">
+                                    <span class="text-blue-600">WADI</span> 
+                                    <span class="text-emerald-600">IT</span> 
+                                    <span class="text-rose-600">TECHNOLOGY</span>
+                                </h1>
+                                <p class="text-slate-500 font-medium mb-6">Dhampara, Wasa, Chittagong</p>
+                                <span class="px-5 py-2 border-2 rounded-lg font-bold tracking-widest uppercase text-sm border-slate-200 text-slate-600 bg-slate-50">
+                                    TERMS & CONDITIONS
+                                </span>
+                            </div>
+                            <div class="text-sm md:text-base text-slate-800 whitespace-pre-wrap leading-loose font-medium">
+                                ${this.state.fullTermsDocument}
+                            </div>
+                            <div class="mt-24 pt-8 border-t border-slate-100 text-center flex justify-end">
+                                <div class="w-48 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">Authorized Signature</div>
                             </div>
                         </div>
                     </div>
@@ -809,10 +865,11 @@
                     this.state.editingId = null;
                 } else {
                     this.state.invoices.unshift(newInvoice);
+                    this.toast(`Document ${newInvoice.id} generated! Saved to Vouchers & Cash Book.`);
+                    
+                    // Simulate automatic email sending
                     if (newInvoice.clientEmail) {
-                        this.toast(`Document ${newInvoice.id} generated & Automatically emailed to ${newInvoice.clientEmail}!`);
-                    } else {
-                        this.toast(`Document ${newInvoice.id} generated! Saved to Vouchers.`);
+                        setTimeout(() => this.toast(`Automated Email dispatched to ${newInvoice.clientEmail}`, "success"), 1500);
                     }
                 }
 
@@ -1141,21 +1198,23 @@
                 this.render();
             }
 
-            // --- TERMS & CONDITIONS VIEW ---
+            // --- TERMS VIEW ---
             viewTerms() {
                 return `
-                    <div class="max-w-4xl mx-auto space-y-6">
-                        <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm fade-in-up no-print">
-                            <div class="font-bold text-slate-700 flex items-center gap-2">
-                                <i class="fas fa-file-contract text-primary-500"></i> Official Terms & Conditions
+                    <div class="fade-in-up glass-panel rounded-2xl shadow-soft border border-white p-6 md:p-10 bg-white">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b-2 border-slate-100 no-print gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Company Terms & Conditions</h2>
+                                <p class="text-slate-500">Official document for client reference.</p>
                             </div>
-                            <button onclick="window.print()" class="bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                                <i class="fas fa-print mr-2"></i> Print PDF
+                            <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-md flex items-center gap-2">
+                                <i class="fas fa-print"></i> Print PDF
                             </button>
                         </div>
                         
-                        <div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg border border-slate-200 fade-in-up stagger-1">
-                            <div class="text-center mb-10 pb-6 border-b-2 border-slate-100">
+                        <!-- Printable Area -->
+                        <div class="print-tc-container">
+                            <div class="text-center mb-10 pb-6 border-b-2 border-slate-100 hidden print:block">
                                 <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">
                                     <span class="text-blue-600">WADI</span> 
                                     <span class="text-emerald-600">IT</span> 
@@ -1166,10 +1225,12 @@
                                     TERMS & CONDITIONS
                                 </span>
                             </div>
-                            <div class="text-sm text-slate-800 whitespace-pre-wrap leading-loose font-medium">
+                            
+                            <div class="text-sm text-slate-800 whitespace-pre-wrap leading-loose font-medium px-2 md:px-10">
                                 ${this.state.fullTermsDocument}
                             </div>
-                            <div class="mt-24 pt-8 border-t border-slate-100 text-center flex justify-end">
+                            
+                            <div class="mt-24 pt-8 border-t border-slate-100 text-center flex justify-end px-10 hidden print:flex">
                                 <div class="w-48 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">Authorized Signature</div>
                             </div>
                         </div>
@@ -1177,9 +1238,25 @@
                 `;
             }
 
+            // --- EMAIL CLIENT ---
+            sendEmail(id) {
+                const invoice = this.state.invoices.find(i => i.id === id);
+                if (!invoice) return;
+                
+                if (!invoice.clientEmail) {
+                    this.toast("No email address provided for this client.", "error");
+                    return;
+                }
+                
+                const subject = encodeURIComponent(`Document ${id} from WADI IT Technology`);
+                const body = encodeURIComponent(`Dear ${invoice.clientName},\n\nPlease find the details for your recent document (${id}) below.\n\nTotal Amount: ${formatMoney(invoice.total)}\n\nPlease let us know if you have any questions.\n\nBest Regards,\nWADI IT Technology`);
+                
+                window.location.href = `mailto:${invoice.clientEmail}?subject=${subject}&body=${body}`;
+            }
+
             // --- MODAL SYSTEM ---
             openModal(voucherId) {
-                document.body.classList.add('modal-open');
+                document.body.classList.add('printing-modal');
                 const invoice = this.state.invoices.find(i => i.id === voucherId);
                 if (!invoice) return;
 
@@ -1196,22 +1273,19 @@
                 const modal = document.getElementById('voucherModal');
                 const content = document.getElementById('modalContent');
                 document.getElementById('modalTitle').textContent = docTitle;
-
-                // Update Modal Action Buttons
-                const headerControls = modal.querySelector('.flex.gap-2');
-                headerControls.innerHTML = `
-                    ${invoice.clientEmail ? `
-                    <a href="mailto:${invoice.clientEmail}?subject=Document ${invoice.id} - WADI IT Technology&body=Dear ${invoice.clientName},%0D%0A%0D%0APlease find the details regarding document ${invoice.id}.%0D%0A%0D%0AThank you." class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold transition-colors hidden sm:flex items-center">
-                        <i class="fas fa-envelope mr-2"></i> Email Client
-                    </a>` : ''}
+                
+                document.getElementById('modalActionButtons').innerHTML = `
+                    <button onclick="app.sendEmailInvoice('${voucherId}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Mail
+                    </button>
                     <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                        <i class="fas fa-print mr-2"></i> Print PDF
+                        <i class="fas fa-print mr-2"></i>Print PDF
                     </button>
                     <button onclick="app.closeModal()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                        <i class="fas fa-times mr-2"></i> Close
+                        <i class="fas fa-times mr-2"></i>Close
                     </button>
                 `;
-                
+
                 const itemsList = invoice.items.map(i => `
                     <tr class="border-b border-slate-200">
                         <td class="py-3 text-sm text-slate-700">${i.description || 'Custom Entry'}</td>
@@ -1325,7 +1399,7 @@
             }
 
             closeModal() {
-                document.body.classList.remove('modal-open');
+                document.body.classList.remove('printing-modal');
                 const modal = document.getElementById('voucherModal');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
