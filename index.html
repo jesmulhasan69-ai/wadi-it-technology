@@ -1,736 +1,1407 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>মঈজুদ্দীন শাহ মেডিসিন এন্ড টেলিকম</title>
+    <title>WADI IT Technology - Management Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
+                        slate: { 850: '#152033', 900: '#0f172a' }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Hind Siliguri', sans-serif; background-color: #0f172a; color: #e2e8f0; } 
+        body { background-color: #f8fafc; }
         
-        .menu-pad { transition: all 0.3s ease; }
-        .menu-pad:hover { background-color: #4f46e5; color: white; transform: translateX(5px); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
         
-        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        input, select { background-color: #1e293b; color: #f8fafc; border-color: #334155; }
-        input:focus, select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px #6366f1; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        #toast { visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; font-size: 17px; transform: translateX(-50%); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        #toast.show { visibility: visible; animation: fadeinToast 0.5s, fadeoutToast 0.5s 2.5s; }
-        @keyframes fadeinToast { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-        @keyframes fadeoutToast { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-
-        /* Print Styles */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .fade-in { animation: fadeIn 0.3s ease forwards; opacity: 0; }
+        
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .stagger-1 { animation-delay: 100ms; }
+        .stagger-2 { animation-delay: 200ms; }
+        .stagger-3 { animation-delay: 300ms; }
+        
+        /* Print Media Queries for A4 PDF Output */
         @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; color: black; background: white; padding: 20px; }
-            .no-print { display: none !important; }
+            @page { size: A4; margin: 0; }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+            }
+            header, aside, #mobileOverlay, #toastArea, .no-print, footer { display: none !important; }
+            .flex-1.overflow-hidden { overflow: visible !important; }
+            
+            body.printing-modal main { display: none !important; } 
+            body:not(.printing-modal) #voucherModal { display: none !important; }
+            
+            #voucherModal {
+                position: absolute !important;
+                left: 0 !important; top: 0 !important;
+                width: 100% !important; height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                display: block !important;
+                background: white !important;
+            }
+            #voucherModal > div:first-child { display: none !important; } /* overlay */
+            #voucherModal > div.relative {
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: none !important;
+                display: block !important; /* Block is required for page breaks to work */
+            }
+            #modalContent {
+                padding: 15mm 20mm !important;
+                width: 100% !important;
+                max-width: 210mm !important; /* A4 Width */
+                margin: 0 auto !important;
+                display: block !important;
+            }
+            .print-only-tc {
+                display: block !important;
+                page-break-before: always !important;
+                break-before: page !important;
+                padding-top: 15mm !important;
+            }
+        }
+        
+        .print-only-tc {
+            display: none;
         }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="text-slate-800 flex flex-col h-screen overflow-hidden antialiased selection:bg-primary-500 selection:text-white bg-slate-50">
 
-    <!-- Sidebar / 3-Dot Menu -->
-    <div id="sidebar" class="bg-slate-900 border-r border-slate-800 w-64 flex-shrink-0 flex flex-col transition-all duration-300 absolute md:relative z-50 h-full -translate-x-full md:translate-x-0 shadow-2xl">
-        <div class="p-5 bg-slate-950 flex justify-between items-center border-b border-slate-800">
-            <div>
-                <h1 class="text-lg font-bold text-indigo-400">মঈজুদ্দীন শাহ</h1>
-                <p class="text-xs text-slate-400">মেডিসিন এন্ড টেলিকম</p>
-            </div>
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+    <!-- Full Width Header -->
+    <header class="w-full bg-slate-900 text-white flex-shrink-0 py-4 md:py-5 px-4 md:px-6 flex items-center justify-center relative z-40 border-b border-slate-800 shadow-xl">
+        <!-- Smart 3-Dot Menu Left -->
+        <button onclick="app.toggleSidebar()" class="absolute left-4 md:left-6 group flex items-center gap-1.5 md:gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2 md:px-4 md:py-2.5 rounded-full transition-all duration-300 shadow-md border border-slate-700 hover:shadow-lg hover:border-slate-500" title="Open Menu">
+            <i class="fas fa-ellipsis-v group-hover:rotate-90 transition-transform duration-300"></i>
+            <span class="font-bold tracking-widest text-[10px] md:text-sm uppercase hidden sm:inline-block">Menu</span>
+        </button>
+
+        <!-- Center Brand & Address (3 Colors) -->
+        <div class="text-center">
+            <h1 class="text-xl sm:text-2xl md:text-4xl font-extrabold tracking-tight mb-0.5 md:mb-1">
+                <span class="text-blue-500">WADI</span> 
+                <span class="text-emerald-500">IT</span> 
+                <span class="text-rose-500">TECHNOLOGY</span>
+            </h1>
+            <p class="text-[10px] sm:text-xs md:text-base text-slate-400 flex items-center justify-center gap-1.5 mt-0.5 font-medium">
+                <i class="fas fa-map-marker-alt text-primary-500"></i> Dhampara, Wasa, Chittagong.
+            </p>
         </div>
-        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+    </header>
+
+    <!-- Body Content Wrapper -->
+    <div class="flex flex-1 overflow-hidden relative w-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wMykiLz48L3N2Zz4=')]">
+
+        <!-- Mobile & Desktop Overlay -->
+        <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0" onclick="app.toggleSidebar(false)"></div>
+
+        <!-- Sidebar Drawer -->
+        <aside id="sidebar" class="bg-slate-900 text-white w-72 flex-shrink-0 flex flex-col absolute left-0 top-0 h-full z-50 transition-transform duration-400 ease-in-out -translate-x-full shadow-2xl border-r border-slate-800">
             
-            <a href="#" onclick="switchView('dashboardView')" class="menu-pad block px-4 py-3 rounded-xl bg-slate-800/50 text-sm font-medium mb-2 border border-slate-700 hover:border-indigo-500"><i class="fas fa-chart-pie mr-3 text-emerald-400"></i>ড্যাশবোর্ড</a>
-            
-            <!-- bKash Business Dropdown -->
-            <div class="mb-2">
-                <button onclick="toggleDropdown('bkashMenu')" class="menu-pad w-full text-left px-4 py-3 rounded-xl bg-slate-800/50 text-sm font-medium flex justify-between items-center border border-slate-700 hover:border-indigo-500">
-                    <span><i class="fas fa-wallet mr-3 text-pink-500"></i>bKash Business</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
+            <div class="flex justify-between items-center p-6 border-b border-slate-800/60">
+                <h2 class="text-sm font-bold text-slate-400 tracking-widest uppercase">Menu Options</h2>
+                <button onclick="app.toggleSidebar(false)" class="text-slate-400 hover:text-white p-1">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
-                <div id="bkashMenu" class="hidden pl-4 pr-2 py-2 space-y-2 bg-slate-900/50 rounded-b-xl mt-1 border-l-2 border-indigo-500 ml-2">
-                    <a href="#" onclick="switchView('bkashCapitalView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-coins mr-2 text-yellow-400"></i>বিকাশ মূলধন (Ledger)</a>
-                    <a href="#" onclick="switchView('bkashSimView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-sim-card mr-2 text-indigo-400"></i>সিমের তথ্য</a>
-                    <a href="#" onclick="switchView('bkashTransactionView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-exchange-alt mr-2 text-blue-400"></i>bKash Transaction (Ledger)</a>
-                    <a href="#" onclick="switchView('bkashARView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-hand-holding-usd mr-2 text-emerald-400"></i>A/R-দেনাদার (Ledger)</a>
-                    <a href="#" onclick="switchView('bkashCashView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-money-bill-wave mr-2 text-teal-400"></i>ক্যাশ (Cash)</a>
-                    <a href="#" onclick="switchView('bkashBankView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-university mr-2 text-orange-400"></i>ব্যাংক (Bank)</a>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <button onclick="app.navigate('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white group">
+                    <i class="fas fa-home w-6 text-xl transition-transform group-hover:scale-110 text-center"></i>
+                    <span class="font-medium ml-3 text-base">Dashboard</span>
+                </button>
+
+                <button onclick="app.openNewInvoice()" id="nav-invoice" class="nav-item w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white group">
+                    <i class="fas fa-file-invoice w-6 text-xl transition-transform group-hover:scale-110 text-center"></i>
+                    <span class="font-medium ml-3 text-base">1. Invoice</span>
+                </button>
+
+                <button onclick="app.navigate('vouchers')" id="nav-vouchers" class="nav-item w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white group">
+                    <i class="fas fa-receipt w-6 text-xl transition-transform group-hover:scale-110 text-center"></i>
+                    <span class="font-medium ml-3 text-base">2. Vouchers</span>
+                </button>
+                
+                <button onclick="app.navigate('cashbook')" id="nav-cashbook" class="nav-item w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white group">
+                    <i class="fas fa-wallet w-6 text-xl transition-transform group-hover:scale-110 text-center"></i>
+                    <span class="font-medium ml-3 text-base">3. Cash Book</span>
+                </button>
+                
+                <button onclick="app.navigate('settings')" id="nav-settings" class="nav-item w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white group">
+                    <i class="fas fa-sliders-h w-6 text-xl transition-transform group-hover:scale-110 text-center"></i>
+                    <span class="font-medium ml-3 text-base">4. Settings</span>
+                </button>
+
+                <button onclick="app.navigate('terms')" id="nav-terms" class="nav-item w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white group">
+                    <i class="fas fa-file-contract w-6 text-xl transition-transform group-hover:scale-110 text-center"></i>
+                    <span class="font-medium ml-3 text-base">5. Terms & Conditions</span>
+                </button>
+            </nav>
+            
+            <!-- Footer -->
+            <div class="p-6 border-t border-slate-800/60 text-xs text-center text-slate-500">
+                &copy; <span id="year"></span> WADI IT.
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full w-full relative overflow-y-auto">
+            
+            <!-- Page Title Area -->
+            <div class="px-4 lg:px-10 py-4 border-b border-slate-200/50 bg-white/70 backdrop-blur-md sticky top-0 z-30 flex justify-between items-center">
+                <h2 id="headerTitle" class="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 tracking-tight drop-shadow-sm">Dashboard</h2>
+                
+                <!-- Status Badge -->
+                <div class="flex items-center text-slate-500 bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-slate-200 shadow-sm text-xs md:text-sm font-medium">
+                    <div class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                    System Online
                 </div>
             </div>
 
-            <!-- Medicine Business Dropdown -->
-            <div class="mb-2">
-                <button onclick="toggleDropdown('medicineMenu')" class="menu-pad w-full text-left px-4 py-3 rounded-xl bg-slate-800/50 text-sm font-medium flex justify-between items-center border border-slate-700 hover:border-indigo-500">
-                    <span><i class="fas fa-pills mr-3 text-blue-400"></i>Medicine Business</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div id="medicineMenu" class="hidden pl-4 pr-2 py-2 space-y-2 bg-slate-900/50 rounded-b-xl mt-1 border-l-2 border-blue-500 ml-2">
-                    <a href="#" onclick="switchView('medCashBookView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-book-open mr-2 text-teal-400"></i>ক্যাশ বুক (Cash Book)</a>
-                    <a href="#" onclick="switchView('medShortListView')" class="menu-pad block px-4 py-2 rounded-lg bg-slate-800/80 text-xs text-slate-300 hover:text-white"><i class="fas fa-clipboard-list mr-2 text-purple-400"></i>শর্ট লিস্ট (Short List)</a>
-                </div>
+            <!-- Dynamic Content Area -->
+            <div id="appContainer" class="flex-1 p-3 sm:p-5 lg:p-10 pb-24">
+                <!-- Rendered by JS -->
             </div>
 
-            <a href="#" onclick="switchView('settingsView')" class="menu-pad block px-4 py-3 rounded-xl bg-slate-800/50 text-sm font-medium border border-slate-700 hover:border-indigo-500 mt-4"><i class="fas fa-cog mr-3 text-slate-400"></i>সেটিংস (Settings)</a>
+            <!-- Professional Footer -->
+            <footer class="mt-auto bg-white/80 backdrop-blur-md border-t border-slate-200 py-6 px-6 lg:px-10 flex flex-col md:flex-row justify-between items-center z-10 relative">
+                <div class="text-sm text-slate-500 font-medium mb-4 md:mb-0">
+                    &copy; <span id="footerYear"></span> <span class="font-bold text-slate-700">WADI IT Technology</span>. All rights reserved.
+                </div>
+                <div class="flex gap-4 text-slate-400">
+                    <a href="#" class="hover:text-primary-500 transition-colors"><i class="fab fa-facebook text-lg"></i></a>
+                    <a href="#" class="hover:text-primary-500 transition-colors"><i class="fab fa-linkedin text-lg"></i></a>
+                    <a href="#" class="hover:text-primary-500 transition-colors"><i class="fas fa-globe text-lg"></i></a>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Voucher Modal (Hidden by default) -->
+    <div id="voucherModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="app.closeModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto fade-in flex flex-col">
+            <!-- Modal Header / Controls -->
+            <div class="no-print sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-200 p-4 flex justify-between items-center z-10">
+                <h3 id="modalTitle" class="font-bold text-slate-700 uppercase tracking-wider">Voucher Document</h3>
+                <div class="flex gap-2" id="modalActionButtons">
+                    <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print PDF
+                    </button>
+                    <button onclick="app.closeModal()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                        <i class="fas fa-times mr-2"></i>Close
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Content (Injected) -->
+            <div id="modalContent" class="p-8 sm:p-12 bg-white">
+                <!-- Content goes here -->
+            </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col w-full h-full relative bg-slate-900">
-        
-        <div class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between z-10 shadow-md">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-indigo-400">
-                    <i class="fas fa-bars text-2xl"></i>
-                </button>
-                <div>
-                    <h2 class="text-xl font-bold text-white">মঈজুদ্দীন শাহ <span class="text-indigo-500">মেডিসিন এন্ড টেলিকম</span></h2>
-                    <p class="text-xs text-slate-400"><i class="fas fa-map-marker-alt mr-1 text-pink-500"></i>পূর্ব গুমানমর্দ্দন, চৌমুহনী বাজার, চট্টগ্রাম</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 font-bold border-2 border-indigo-500">MS</div>
-            </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-20" id="mainContainer">
-            
-            <!-- Dashboard View -->
-            <div id="dashboardView" class="view-section active">
-                <!-- bKash Overview -->
-                <h2 class="text-xl font-bold text-white mb-4 flex items-center border-b border-slate-700 pb-2"><i class="fas fa-wallet mr-2 text-pink-500"></i> বিকাশ ওভারভিউ</h2>
-                
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl mb-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-                    <div class="flex justify-between items-center relative z-10">
-                        <div>
-                            <p class="text-slate-400 text-sm font-semibold mb-1 tracking-wider uppercase">মোট বিকাশ মূলধন (Total Capital)</p>
-                            <h3 class="text-4xl font-bold text-white">৳ <span id="dashTotalCapital">0</span></h3>
-                        </div>
-                        <div class="p-4 bg-slate-900/50 border border-slate-700 rounded-2xl text-pink-500"><i class="fas fa-wallet text-3xl"></i></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                    <div class="bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700 text-center">
-                        <p class="text-slate-400 text-xs font-bold mb-2">মোট সিম ব্যালেন্স</p>
-                        <h4 class="text-xl font-bold text-indigo-400">৳ <span id="dashSim">0</span></h4>
-                    </div>
-                    <div class="bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700 text-center">
-                        <p class="text-slate-400 text-xs font-bold mb-2">বিকাশ লেনদেন</p>
-                        <h4 class="text-xl font-bold text-blue-400">৳ <span id="dashTransaction">0</span></h4>
-                    </div>
-                    <div class="bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700 text-center">
-                        <p class="text-slate-400 text-xs font-bold mb-2">মোট দেনাদার</p>
-                        <h4 class="text-xl font-bold text-emerald-400">৳ <span id="dashDenadar">0</span></h4>
-                    </div>
-                    <div class="bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700 text-center">
-                        <p class="text-slate-400 text-xs font-bold mb-2">মোট ক্যাশ</p>
-                        <h4 class="text-xl font-bold text-teal-400">৳ <span id="dashCash">0</span></h4>
-                    </div>
-                    <div class="bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700 text-center">
-                        <p class="text-slate-400 text-xs font-bold mb-2">মোট ব্যাংক</p>
-                        <h4 class="text-xl font-bold text-orange-400">৳ <span id="dashBank">0</span></h4>
-                    </div>
-                </div>
-
-                <!-- Medicine Dashboard Overview -->
-                <h2 class="text-xl font-bold text-white mb-4 mt-8 flex items-center border-b border-slate-700 pb-2"><i class="fas fa-pills mr-2 text-blue-400"></i> মেডিসিন ওভারভিউ</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <!-- Medicine Cash -->
-                    <div class="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                        <div class="flex justify-between items-center relative z-10">
-                            <div>
-                                <p class="text-teal-400 text-sm font-bold mb-1 uppercase tracking-wider">মেডিসিন ক্যাশ (Cash in Hand)</p>
-                                <h3 class="text-3xl font-bold text-white">৳ <span id="dashMedCash">0</span></h3>
-                            </div>
-                            <div class="p-4 bg-teal-500/20 border border-teal-500/30 rounded-2xl text-teal-400"><i class="fas fa-money-bill-wave text-3xl"></i></div>
-                        </div>
-                    </div>
-                    <!-- Today's Medicine Purchase -->
-                    <div class="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                        <div class="flex justify-between items-center relative z-10">
-                            <div>
-                                <p class="text-rose-400 text-sm font-bold mb-1 uppercase tracking-wider">আজকের মেডিসিন ক্রয় (Purchase)</p>
-                                <h3 class="text-3xl font-bold text-white">৳ <span id="dashMedPurchase">0</span></h3>
-                            </div>
-                            <div class="p-4 bg-rose-500/20 border border-rose-500/30 rounded-2xl text-rose-400"><i class="fas fa-shopping-cart text-3xl"></i></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profit Card -->
-                <div class="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-2xl p-6 shadow-2xl mb-6 border border-emerald-500/30 relative overflow-hidden mt-8">
-                    <div class="absolute -bottom-10 -right-10 text-white/10"><i class="fas fa-chart-line text-9xl"></i></div>
-                    <div class="flex justify-between items-center relative z-10">
-                        <div>
-                            <p class="text-emerald-100 text-sm font-semibold mb-1 uppercase tracking-wider">মোট লাভ / লোকসান (PROFIT)</p>
-                            <h3 class="text-4xl font-bold text-white">৳ <span id="dashProfit">0</span></h3>
-                            <p class="text-xs text-emerald-200 mt-2 opacity-75">সূত্র: (সম্পদ) - (মোট মূলধন)</p>
-                        </div>
-                        <div class="p-4 bg-black/20 rounded-2xl backdrop-blur-sm border border-white/10"><i class="fas fa-arrow-trend-up text-3xl text-emerald-300"></i></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings -->
-            <div id="settingsView" class="view-section">
-                <!-- ... [Keep exact existing code for Settings View] ... -->
-                <h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3"><i class="fas fa-cog mr-2 text-slate-400"></i>সেটিংস ম্যানেজার</h2>
-                <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
-                    <h3 class="text-lg font-bold text-indigo-400 mb-4">নতুন খাত (Category) যুক্ত করুন</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-1">কোন অপশনে যুক্ত করবেন?</label>
-                            <select id="settingCategoryType" class="w-full border border-slate-600 p-2.5 rounded-lg text-sm bg-slate-900 text-white">
-                                <option value="capital">বিকাশ মূলধন (Ledger)</option>
-                                <option value="sim">সিমের তথ্য (Simple Update)</option>
-                                <option value="transaction">বিকাশ লেনদেন (Ledger)</option>
-                                <option value="denadar">A/R-দেনাদার (Ledger)</option>
-                                <option value="cash">ক্যাশ (Simple Update)</option>
-                                <option value="bank">ব্যাংক (Simple Update)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-1">খাতের নাম</label>
-                            <input type="text" id="settingKhatName" placeholder="যেমন: ব্যাংক লোন, কাস্টমার নাম..." class="w-full border border-slate-600 p-2.5 rounded-lg text-sm bg-slate-900 text-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-1">প্রাথমিক ব্যালেন্স (৳)</label>
-                            <input type="number" id="settingInitialBalance" placeholder="0" class="w-full border border-slate-600 p-2.5 rounded-lg text-sm bg-slate-900 text-white">
-                        </div>
-                    </div>
-                    <button onclick="addDynamicKhat()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition"><i class="fas fa-plus mr-2"></i>খাত যুক্ত করুন</button>
-                </div>
-            </div>
-
-            <!-- bKash LEDGER & SIMPLE VIEWS -->
-            <div id="bkashCapitalView" class="view-section"><h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3 flex justify-between items-end"><span><i class="fas fa-coins text-yellow-400 mr-2"></i> বিকাশ মূলধন</span><span class="text-sm font-normal text-slate-400">Total: ৳<span id="headerTotalCapital" class="text-white font-bold">0</span></span></h2><div id="capitalList" class="space-y-4"></div></div>
-            <div id="bkashARView" class="view-section"><h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3 flex justify-between items-end"><span><i class="fas fa-hand-holding-usd text-emerald-400 mr-2"></i> A/R-দেনাদার</span><span class="text-sm font-normal text-slate-400">Total: ৳<span id="headerTotalDenadar" class="text-white font-bold">0</span></span></h2><div id="denadarList" class="space-y-4"></div></div>
-            <div id="bkashTransactionView" class="view-section"><h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3 flex justify-between items-end"><span><i class="fas fa-exchange-alt text-blue-400 mr-2"></i> bKash Transaction</span><span class="text-sm font-normal text-slate-400">Total: ৳<span id="headerTotalTransaction" class="text-white font-bold">0</span></span></h2><div id="transactionList" class="space-y-4"></div></div>
-            <div id="bkashSimView" class="view-section"><h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3 flex justify-between items-end"><span><i class="fas fa-sim-card text-indigo-400 mr-2"></i> সিমের তথ্য</span><span class="text-sm font-normal text-slate-400">Total: ৳<span id="headerTotalSim" class="text-white font-bold">0</span></span></h2><div id="simList" class="space-y-4"></div></div>
-            <div id="bkashCashView" class="view-section"><h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3 flex justify-between items-end"><span><i class="fas fa-money-bill-wave text-teal-400 mr-2"></i> ক্যাশ</span><span class="text-sm font-normal text-slate-400">Total: ৳<span id="headerTotalCash" class="text-white font-bold">0</span></span></h2><div id="cashList" class="space-y-4"></div></div>
-            <div id="bkashBankView" class="view-section"><h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3 flex justify-between items-end"><span><i class="fas fa-university text-orange-400 mr-2"></i> ব্যাংক</span><span class="text-sm font-normal text-slate-400">Total: ৳<span id="headerTotalBank" class="text-white font-bold">0</span></span></h2><div id="bankList" class="space-y-4"></div></div>
-            
-            <!-- MEDICINE CASH BOOK VIEW -->
-            <div id="medCashBookView" class="view-section">
-                <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-3">
-                    <h2 class="text-2xl font-bold text-white"><i class="fas fa-book-open mr-2 text-teal-400"></i> মেডিসিন ক্যাশ বুক (Cash Book)</h2>
-                    <button onclick="printMedCashBook()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg text-sm transition"><i class="fas fa-print mr-2"></i>প্রিন্ট করুন</button>
-                </div>
-                
-                <div class="p-6 bg-slate-800 border border-slate-700 rounded-2xl mb-6">
-                    <h4 class="font-bold text-slate-300 mb-3"><i class="fas fa-plus-circle mr-2 text-teal-400"></i><span id="medCashFormTitle">নতুন এন্ট্রি যোগ করুন</span></h4>
-                    <div class="flex flex-wrap md:flex-nowrap gap-3">
-                        <input type="hidden" id="medCashEditId" value="">
-                        <input type="date" id="medCashDate" class="border border-slate-600 p-2.5 rounded-lg text-sm text-white w-full md:w-auto">
-                        <input type="text" id="medCashDetails" placeholder="লেনদেনের বিবরণ (যেমন: ঔষধ বিক্রয়, ঔষধ ক্রয়)..." class="flex-1 border border-slate-600 p-2.5 rounded-lg text-sm text-white">
-                        <select id="medCashType" class="border border-slate-600 p-2.5 rounded-lg text-sm text-white w-full md:w-40">
-                            <option value="dr">জমা / আয় (+)</option>
-                            <option value="cr">খরচ / ক্রয় (-)</option>
-                        </select>
-                        <input type="number" id="medCashAmount" placeholder="পরিমাণ (৳)" class="w-full md:w-32 border border-slate-600 p-2.5 rounded-lg text-sm text-white">
-                        <button id="medCashSubmitBtn" onclick="saveMedCashEntry()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold py-2.5 px-6 rounded-lg transition">সংরক্ষণ</button>
-                        <button id="medCashCancelBtn" onclick="resetMedCashForm()" class="hidden bg-slate-600 hover:bg-slate-500 text-white font-bold py-2.5 px-4 rounded-lg transition"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden" id="printCashBookArea">
-                    <div class="p-4 bg-slate-900 border-b border-slate-700 flex justify-between items-center no-print">
-                        <h3 class="font-bold text-white">লেজার হিসেব</h3>
-                        <p class="text-sm text-slate-400">ক্যাশ ব্যালেন্স: <span class="text-lg font-bold text-teal-400 ml-1">৳ <span id="medCashCurrentBalance">0</span></span></p>
-                    </div>
-                    <div class="overflow-x-auto p-4">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="text-xs text-slate-400 uppercase bg-slate-900 rounded-lg">
-                                <tr>
-                                    <th class="px-4 py-3 rounded-tl-lg">তারিখ</th>
-                                    <th class="px-4 py-3">বিবরণ</th>
-                                    <th class="px-4 py-3 text-right">জমা (Dr/+)</th>
-                                    <th class="px-4 py-3 text-right">খরচ (Cr/-)</th>
-                                    <th class="px-4 py-3 text-right">ব্যালেন্স</th>
-                                    <th class="px-4 py-3 text-center rounded-tr-lg no-print">অ্যাকশন</th>
-                                </tr>
-                            </thead>
-                            <tbody id="medCashTableBody" class="divide-y divide-slate-700/50"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MEDICINE SHORT LIST VIEW -->
-            <div id="medShortListView" class="view-section">
-                <h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3"><i class="fas fa-clipboard-list mr-2 text-purple-400"></i> শর্ট লিস্ট (Short List)</h2>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Input Section -->
-                    <div class="lg:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg h-fit">
-                        <h3 class="font-bold text-indigo-400 mb-4">লিস্টে ঔষধ যোগ করুন</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 mb-1">ঔষধের নাম</label>
-                                <input type="text" id="shortListName" placeholder="যেমন: Napa Extra, Seclo 20mg..." class="w-full border border-slate-600 p-2.5 rounded-lg text-sm bg-slate-900 text-white focus:border-purple-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 mb-1">পরিমাণ (Qty)</label>
-                                <input type="text" id="shortListQty" placeholder="যেমন: 5 Box, 10 Pata..." class="w-full border border-slate-600 p-2.5 rounded-lg text-sm bg-slate-900 text-white focus:border-purple-500">
-                            </div>
-                            <button onclick="addMedShortList()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg transition mt-2"><i class="fas fa-plus mr-2"></i>যোগ করুন</button>
-                        </div>
-                    </div>
-
-                    <!-- Pad / Display Section -->
-                    <div class="lg:col-span-2 relative">
-                        <div class="flex justify-end gap-3 mb-3">
-                            <button onclick="copyMedShortList()" class="bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition"><i class="fas fa-copy mr-2 text-blue-400"></i>Send/Copy</button>
-                            <button onclick="printMedShortList()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2 px-4 rounded-lg transition"><i class="fas fa-print mr-2"></i>প্রিন্ট</button>
-                        </div>
-                        
-                        <!-- The Pad -->
-                        <div id="shortListPadArea" class="bg-white rounded-lg p-8 shadow-2xl min-h-[400px] text-slate-800 border-t-8 border-indigo-600">
-                            <div class="text-center border-b-2 border-slate-200 pb-4 mb-4">
-                                <h1 class="text-2xl font-bold text-indigo-700">মঈজুদ্দীন শাহ মেডিসিন এন্ড টেলিকম</h1>
-                                <p class="text-sm text-slate-600">পূর্ব গুমানমর্দ্দন, চৌমুহনী বাজার, চট্টগ্রাম</p>
-                                <div class="mt-2 text-xs font-bold bg-slate-100 inline-block px-3 py-1 rounded">ঔষধের শর্ট লিস্ট</div>
-                            </div>
-                            <div class="flex justify-between text-sm font-bold mb-4">
-                                <span>তারিখ: <span id="shortListDateDisplay"></span></span>
-                            </div>
-                            
-                            <table class="w-full text-left text-sm mb-8">
-                                <thead>
-                                    <tr class="border-b-2 border-slate-800 text-slate-700">
-                                        <th class="py-2 w-12 text-center">নং</th>
-                                        <th class="py-2">ঔষধের বিবরণ (Description)</th>
-                                        <th class="py-2 text-right">পরিমাণ (Qty)</th>
-                                        <th class="py-2 w-10 text-center no-print"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="shortListTableBody" class="divide-y divide-slate-200 text-slate-700 font-medium">
-                                    <!-- List renders here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LEDGER MODAL (bKash) -->
-            <div id="ledgerModal" class="hidden fixed inset-0 bg-slate-900/95 z-[100] flex flex-col p-4 md:p-10 backdrop-blur-sm overflow-y-auto">
-                <div class="max-w-4xl w-full mx-auto bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 flex flex-col">
-                    <div class="p-6 border-b border-slate-700 flex justify-between items-start bg-slate-800/80 rounded-t-2xl">
-                        <div>
-                            <p class="text-xs text-indigo-400 font-bold uppercase tracking-wider mb-1" id="ledgerTypeLabel">খাতের ধরন</p>
-                            <h2 class="text-3xl font-bold text-white" id="ledgerTitle">খাতের নাম</h2>
-                            <p class="text-sm text-slate-400 mt-2">বর্তমান ব্যালেন্স: <span class="text-xl font-bold text-emerald-400 ml-1">৳ <span id="ledgerCurrentBalance">0</span></span></p>
-                        </div>
-                        <button onclick="closeLedger()" class="bg-slate-700 hover:bg-slate-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-                    </div>
-
-                    <div class="p-6 bg-slate-850 border-b border-slate-700">
-                        <h4 class="font-bold text-slate-300 mb-3"><i class="fas fa-plus-circle mr-2 text-indigo-400"></i>নতুন লেনদেন যোগ করুন</h4>
-                        <div class="flex flex-wrap md:flex-nowrap gap-3">
-                            <input type="date" id="ledgerDate" class="border border-slate-600 p-2.5 rounded-lg text-sm text-white w-full md:w-auto">
-                            <input type="text" id="ledgerDetails" placeholder="লেনদেনের বিবরণ..." class="flex-1 border border-slate-600 p-2.5 rounded-lg text-sm text-white">
-                            <select id="ledgerType" class="border border-slate-600 p-2.5 rounded-lg text-sm text-white w-full md:w-32">
-                                <option value="dr">যোগ (+)</option>
-                                <option value="cr">বিয়োগ (-)</option>
-                            </select>
-                            <input type="number" id="ledgerAmount" placeholder="পরিমাণ (৳)" class="w-full md:w-32 border border-slate-600 p-2.5 rounded-lg text-sm text-white">
-                            <button onclick="addLedgerTransaction()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-6 rounded-lg transition">যোগ</button>
-                        </div>
-                    </div>
-
-                    <div class="p-6 overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="text-xs text-slate-400 uppercase bg-slate-900 rounded-lg">
-                                <tr>
-                                    <th class="px-4 py-3 rounded-tl-lg">তারিখ</th>
-                                    <th class="px-4 py-3">বিবরণ</th>
-                                    <th class="px-4 py-3 text-right">যোগ (Dr/+)</th>
-                                    <th class="px-4 py-3 text-right">বিয়োগ (Cr/-)</th>
-                                    <th class="px-4 py-3 text-right rounded-tr-lg">ব্যালেন্স</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ledgerTableBody" class="divide-y divide-slate-700/50"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="bg-slate-950 border-t border-slate-800 py-3 px-6 text-center text-xs text-slate-500 z-10 w-full shadow-inner">
-            <p>&copy; 2026 মঈজুদ্দীন শাহ মেডিসিন এন্ড টেলিকম</p>
-        </div>
-    </div>
-
-    <div id="toast">Message goes here</div>
+    <!-- Toast Container -->
+    <div id="toastArea" class="fixed bottom-6 right-6 z-[110] flex flex-col gap-3 pointer-events-none"></div>
 
     <script>
-        // Set today's date for inputs globally
-        const getTodayStr = () => new Date().toISOString().split('T')[0];
-
-        let appData = {
-            // bKash LEDGER
-            capital: [{ id: 1, name: 'নিজস্ব ফান্ড', transactions: [{ id: 101, date: '2026-11-01', details: 'Opening Balance', type: 'dr', amount: 50000 }] }],
-            transaction: [{ id: 1, name: 'Today Transaction', transactions: [{ id: 201, date: getTodayStr(), details: 'Daily Entry', type: 'dr', amount: 5000 }] }],
-            denadar: [{ id: 1, name: 'রহিম ট্রেডার্স', transactions: [{ id: 301, date: '2026-11-02', details: 'Baki', type: 'dr', amount: 3000 }] }],
-            // bKash SIMPLE UPDATE
-            sim: [{ id: 1, name: 'Personal SIM 1', amount: 15000 }],
-            cash: [{ id: 1, name: 'দোকান ক্যাশ', amount: 8000 }],
-            bank: [{ id: 1, name: 'ব্র্যাক ব্যাংক', amount: 45000 }],
-            
-            // MEDICINE BUSINESS DATA
-            medCashBook: [
-                { id: 1, date: getTodayStr(), details: 'Cash Sales', type: 'dr', amount: 2500 },
-                { id: 2, date: getTodayStr(), details: 'Purchase from Lazz Pharma', type: 'cr', amount: 1200 }
-            ],
-            medShortList: [
-                { id: 1, name: 'Napa Extra 500mg', qty: '10 Box' },
-                { id: 2, name: 'Seclo 20mg', qty: '5 Pata' }
-            ]
-        };
-
-        // --- Core Nav & UI ---
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
-        function toggleDropdown(id) { document.getElementById(id).classList.toggle('hidden'); }
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            if(window.innerWidth < 768) toggleSidebar();
-            
-            // Setup defaults when switching to specific views
-            if(viewId === 'medCashBookView') document.getElementById('medCashDate').value = getTodayStr();
-            if(viewId === 'medShortListView') document.getElementById('shortListDateDisplay').innerText = new Date().toLocaleDateString('bn-BD', { day:'numeric', month:'long', year:'numeric'});
-            
-            updateUI();
-        }
-        function showToast(msg) {
-            let t = document.getElementById("toast");
-            t.innerText = msg; t.className = "show";
-            setTimeout(() => t.className = "", 3000);
+        document.getElementById('year').textContent = new Date().getFullYear();
+        if(document.getElementById('footerYear')) {
+            document.getElementById('footerYear').textContent = new Date().getFullYear();
         }
 
-        // --- Calculate Helpers ---
-        function getLedgerBalance(item) {
-            if(!item.transactions) return 0;
-            return item.transactions.reduce((total, trans) => trans.type === 'dr' ? total + Number(trans.amount) : total - Number(trans.amount), 0);
-        }
-        function getCategoryTotal(cat) {
-            return appData[cat].reduce((sum, item) => sum + (['sim','cash','bank'].includes(cat) ? Number(item.amount||0) : getLedgerBalance(item)), 0);
-        }
+        const formatMoney = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'BDT', maximumFractionDigits: 0 }).format(amount);
+        const generateId = () => 'INV-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 
-        // --- MEDICINE CASH BOOK LOGIC ---
-        function renderMedCashBook() {
-            let tbody = document.getElementById('medCashTableBody'), bal = 0;
-            tbody.innerHTML = '';
-            
-            // Sort by date/id for chronological order
-            let sorted = [...appData.medCashBook].sort((a,b) => new Date(a.date) - new Date(b.date) || a.id - b.id);
-            
-            let todayPurchase = 0;
-            let todayStr = getTodayStr();
+        class App {
+            constructor() {
+                this.state = {
+                    editingId: null,
+                    currentView: 'dashboard',
+                    sidebarOpen: false,
+                    taxRate: 5,
+                    defaultTerms: 'Thank you for choosing WADI IT TECHNOLOGY. Please process payment within 7 days.',
+                    fullTermsDocument: "WADI IT TECHNOLOGY - TERMS AND CONDITIONS\n\n1. All services are subject to a formal agreement.\n2. 50% advance payment is required to initiate project work.\n3. Custom software delivery timelines depend on project scale and client feedback speed.\n4. Annual maintenance covers regular bug fixes but does not include new feature development.\n5. Payments made for digital goods and services are generally non-refundable once work has commenced.\n\nThank you for doing business with us.",
+                    services: [
+                        { id: 1, name: "Web Application Dev", price: 45000 },
+                        { id: 2, name: "E-commerce Solution", price: 60000 },
+                        { id: 3, name: "UI/UX Design", price: 25000 },
+                        { id: 4, name: "Annual Maintenance", price: 15000 }
+                    ],
+                    expenseCategories: [
+                        { id: 1, name: "Office Rent" },
+                        { id: 2, name: "Employee Salary" },
+                        { id: 3, name: "Server & Hosting Cost" },
+                        { id: 4, name: "Utility Bills" }
+                    ],
+                    profitCategories: [
+                        { id: 1, name: "Direct Client Project" },
+                        { id: 2, name: "Domain & Hosting Resell" },
+                        { id: 3, name: "Consultation" }
+                    ],
+                    invoices: [
+                        { 
+                            id: 'INV-20231020-0001', 
+                            type: 'billing',
+                            date: new Date(Date.now() - 86400000).toISOString().split('T')[0], 
+                            clientName: 'TechNova BD',
+                            clientEmail: 'contact@technova.com',
+                            clientPhone: '01712345678',
+                            note: '',
+                            items: [{ id: 1, serviceId: 1, description: 'Web Application Dev', qty: 1, price: 45000 }],
+                            subtotal: 45000,
+                            tax: 2250,
+                            total: 47250,
+                            terms: 'Thank you for choosing WADI IT TECHNOLOGY.'
+                        }
+                    ]
+                };
+                this.state.draft = this.getEmptyDraft();
+                this.init();
+            }
 
-            sorted.forEach(t => {
-                bal += (t.type === 'dr' ? Number(t.amount) : -Number(t.amount));
-                // Calculate today's purchase (cr entries for today)
-                if(t.type === 'cr' && t.date === todayStr) todayPurchase += Number(t.amount);
+            getEmptyDraft() {
+                return {
+                    type: 'billing',
+                    clientName: '',
+                    clientEmail: '',
+                    clientPhone: '',
+                    date: new Date().toISOString().split('T')[0],
+                    note: '',
+                    terms: this.state.defaultTerms,
+                    includeTC: true,
+                    items: [] // Start empty, user will check boxes
+                };
+            }
 
-                tbody.innerHTML += `<tr>
-                    <td class="px-4 py-3 border-t border-slate-700/50">${t.date}</td>
-                    <td class="px-4 py-3 border-t border-slate-700/50 font-medium">${t.details}</td>
-                    <td class="px-4 py-3 text-right text-teal-400 border-t border-slate-700/50">${t.type === 'dr' ? '+'+Number(t.amount).toLocaleString() : '-'}</td>
-                    <td class="px-4 py-3 text-right text-rose-400 border-t border-slate-700/50">${t.type === 'cr' ? '-'+Number(t.amount).toLocaleString() : '-'}</td>
-                    <td class="px-4 py-3 text-right text-white font-bold border-t border-slate-700/50">৳${bal.toLocaleString()}</td>
-                    <td class="px-4 py-3 text-center border-t border-slate-700/50 no-print">
-                        <button onclick="editMedCashEntry(${t.id})" class="text-blue-400 hover:text-white mr-3"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteMedCashEntry(${t.id})" class="text-rose-500 hover:text-white"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-            });
-            document.getElementById('medCashCurrentBalance').innerText = bal.toLocaleString();
-            
-            // Update Dashboard fields directly here
-            document.getElementById('dashMedCash').innerText = bal.toLocaleString();
-            document.getElementById('dashMedPurchase').innerText = todayPurchase.toLocaleString();
-        }
+            init() {
+                this.navigate('dashboard');
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 1024 && this.state.sidebarOpen) {
+                        this.toggleSidebar(false);
+                    }
+                });
+            }
 
-        function saveMedCashEntry() {
-            let id = document.getElementById('medCashEditId').value;
-            let date = document.getElementById('medCashDate').value;
-            let details = document.getElementById('medCashDetails').value;
-            let type = document.getElementById('medCashType').value;
-            let amount = document.getElementById('medCashAmount').value;
+            openNewInvoice() {
+                this.state.editingId = null;
+                this.state.draft = this.getEmptyDraft();
+                this.navigate('invoice');
+            }
 
-            if(!date || !details || !amount) { showToast("সব তথ্য পূরণ করুন!"); return; }
-
-            if(id) {
-                // Edit existing
-                let idx = appData.medCashBook.findIndex(x => x.id == id);
-                if(idx > -1) {
-                    appData.medCashBook[idx] = { id: Number(id), date, details, type, amount: Number(amount) };
-                    showToast("আপডেট করা হয়েছে!");
+            toggleSidebar(forceState) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('mobileOverlay');
+                
+                this.state.sidebarOpen = forceState !== undefined ? forceState : !this.state.sidebarOpen;
+                
+                if (this.state.sidebarOpen) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
                 }
-            } else {
-                // Add new
-                appData.medCashBook.push({ id: Date.now(), date, details, type, amount: Number(amount) });
-                showToast("নতুন এন্ট্রি যোগ হয়েছে!");
             }
-            
-            resetMedCashForm();
-            updateUI();
-        }
 
-        function editMedCashEntry(id) {
-            let entry = appData.medCashBook.find(x => x.id === id);
-            if(!entry) return;
-            document.getElementById('medCashEditId').value = entry.id;
-            document.getElementById('medCashDate').value = entry.date;
-            document.getElementById('medCashDetails').value = entry.details;
-            document.getElementById('medCashType').value = entry.type;
-            document.getElementById('medCashAmount').value = entry.amount;
-            
-            document.getElementById('medCashFormTitle').innerText = "এন্ট্রি আপডেট করুন";
-            document.getElementById('medCashSubmitBtn').innerText = "আপডেট";
-            document.getElementById('medCashSubmitBtn').className = "bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-lg transition";
-            document.getElementById('medCashCancelBtn').classList.remove('hidden');
-        }
+            navigate(view) {
+                this.state.currentView = view;
+                
+                document.querySelectorAll('.nav-item').forEach(el => {
+                    el.classList.remove('bg-gradient-to-r', 'from-primary-600', 'to-primary-500', 'text-white', 'shadow-md');
+                    el.classList.add('text-slate-300');
+                });
+                
+                const activeBtn = document.getElementById(`nav-${view}`);
+                if(activeBtn) {
+                    activeBtn.classList.remove('text-slate-300');
+                    activeBtn.classList.add('bg-gradient-to-r', 'from-primary-600', 'to-primary-500', 'text-white', 'shadow-md', 'shadow-primary-500/20');
+                }
 
-        function deleteMedCashEntry(id) {
-            if(confirm("এই লেনদেনটি মুছে ফেলতে চান?")) {
-                appData.medCashBook = appData.medCashBook.filter(x => x.id !== id);
-                showToast("মুছে ফেলা হয়েছে!");
-                updateUI();
+                const titles = { 
+                    dashboard: 'Dashboard Overview',
+                    invoice: 'Create New Invoice', 
+                    vouchers: 'Saved Vouchers',
+                    cashbook: 'Company Cash Book', 
+                    settings: 'System Settings',
+                    terms: 'Terms & Conditions' 
+                };
+                document.getElementById('headerTitle').textContent = titles[view] || 'Portal';
+
+                if (window.innerWidth < 1024) this.toggleSidebar(false);
+
+                this.render();
             }
-        }
 
-        function resetMedCashForm() {
-            document.getElementById('medCashEditId').value = '';
-            document.getElementById('medCashDate').value = getTodayStr();
-            document.getElementById('medCashDetails').value = '';
-            document.getElementById('medCashType').value = 'dr';
-            document.getElementById('medCashAmount').value = '';
-            
-            document.getElementById('medCashFormTitle').innerText = "নতুন এন্ট্রি যোগ করুন";
-            document.getElementById('medCashSubmitBtn').innerText = "সংরক্ষণ";
-            document.getElementById('medCashSubmitBtn').className = "bg-teal-600 hover:bg-teal-500 text-white font-bold py-2.5 px-6 rounded-lg transition";
-            document.getElementById('medCashCancelBtn').classList.add('hidden');
-        }
-
-        function printMedCashBook() {
-            let printContents = document.getElementById('printCashBookArea').innerHTML;
-            let originalContents = document.body.innerHTML;
-            
-            let printWindow = window.open('', '', 'height=600,width=800');
-            printWindow.document.write('<html><head><title>মেডিসিন ক্যাশ বুক</title>');
-            printWindow.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #333;padding:8px;text-align:left;} th.text-right, td.text-right{text-align:right;} .no-print{display:none;} h3{text-align:center;font-size:24px;margin-bottom:5px;}</style>');
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h3>মঈজুদ্দীন শাহ মেডিসিন এন্ড টেলিকম</h3>');
-            printWindow.document.write('<h4 style="text-align:center;margin-top:0;">মেডিসিন ক্যাশ বুক লেজার</h4>');
-            printWindow.document.write(printContents);
-            printWindow.document.write('</body></html>');
-            
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
-        }
-
-        // --- MEDICINE SHORT LIST LOGIC ---
-        function renderMedShortList() {
-            let tbody = document.getElementById('shortListTableBody');
-            tbody.innerHTML = '';
-            appData.medShortList.forEach((item, index) => {
-                tbody.innerHTML += `<tr>
-                    <td class="py-2 text-center border-b border-slate-200">${index + 1}</td>
-                    <td class="py-2 border-b border-slate-200 font-bold">${item.name}</td>
-                    <td class="py-2 text-right border-b border-slate-200 font-bold text-indigo-700">${item.qty}</td>
-                    <td class="py-2 text-center border-b border-slate-200 no-print">
-                        <button onclick="deleteMedShortList(${item.id})" class="text-rose-500 hover:text-rose-700"><i class="fas fa-times-circle text-lg"></i></button>
-                    </td>
-                </tr>`;
-            });
-        }
-
-        function addMedShortList() {
-            let name = document.getElementById('shortListName').value;
-            let qty = document.getElementById('shortListQty').value;
-            if(!name || !qty) { showToast("নাম এবং পরিমাণ দিন!"); return; }
-            
-            appData.medShortList.push({ id: Date.now(), name, qty });
-            document.getElementById('shortListName').value = '';
-            document.getElementById('shortListQty').value = '';
-            showToast("লিস্টে যোগ হয়েছে!");
-            renderMedShortList();
-        }
-
-        function deleteMedShortList(id) {
-            appData.medShortList = appData.medShortList.filter(x => x.id !== id);
-            renderMedShortList();
-        }
-
-        function copyMedShortList() {
-            if(appData.medShortList.length === 0) { showToast("লিস্ট খালি!"); return; }
-            let text = "*মঈজুদ্দীন শাহ মেডিসিন এন্ড টেলিকম*\n_শর্ট লিস্ট_\n\n";
-            appData.medShortList.forEach((item, idx) => {
-                text += `${idx+1}. ${item.name} - ${item.qty}\n`;
-            });
-            navigator.clipboard.writeText(text).then(() => showToast("লিস্ট কপি করা হয়েছে!"));
-        }
-
-        function printMedShortList() {
-            let printContents = document.getElementById('shortListPadArea').innerHTML;
-            let printWindow = window.open('', '', 'height=600,width=600');
-            printWindow.document.write('<html><head><title>Short List Pad</title>');
-            printWindow.document.write('<style>body{font-family:sans-serif;padding:20px;color:#333;} .text-center{text-align:center;} .border-b-2{border-bottom:2px solid #ccc;} .mb-4{margin-bottom:1rem;} .pb-4{padding-bottom:1rem;} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{padding:10px;text-align:left;border-bottom:1px solid #eee;} th.text-right, td.text-right{text-align:right;} th.text-center, td.text-center{text-align:center;} .no-print{display:none;} h1{font-size:24px;margin-bottom:5px;color:#4338ca;} p{margin:0;font-size:14px;} .bg-slate-100{background:#f1f5f9;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:10px;}</style>');
-            printWindow.document.write('</head><body>');
-            printWindow.document.write(printContents);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
-        }
-
-        // --- bKash Settings & Generics ---
-        function addDynamicKhat() {
-            let type = document.getElementById('settingCategoryType').value;
-            let name = document.getElementById('settingKhatName').value;
-            let amount = Number(document.getElementById('settingInitialBalance').value) || 0;
-            if(!name) return showToast("নাম দিন!");
-            let newItem = { id: Date.now(), name: name };
-            if(['sim','cash','bank'].includes(type)) { newItem.amount = amount; }
-            else {
-                newItem.transactions = [];
-                if(amount > 0) newItem.transactions.push({ id: Date.now(), date: getTodayStr(), details: 'Opening', type: 'dr', amount: amount });
+            toast(msg, type = 'success') {
+                const area = document.getElementById('toastArea');
+                const toast = document.createElement('div');
+                const isSuccess = type === 'success';
+                
+                toast.className = `fade-in-up pointer-events-auto flex items-center p-4 rounded-xl shadow-lg border ${isSuccess ? 'bg-white border-green-200 text-slate-800' : 'bg-red-50 border-red-200 text-red-800'}`;
+                toast.innerHTML = `
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3 ${isSuccess ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                        <i class="fas ${isSuccess ? 'fa-check' : 'fa-exclamation'}"></i>
+                    </div>
+                    <div class="font-medium text-sm pr-4">${msg}</div>
+                `;
+                
+                area.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(10px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             }
-            appData[type].push(newItem);
-            showToast("খাত যুক্ত হয়েছে!"); updateUI();
-        }
 
-        function deleteKhat(type, id) {
-            if(confirm("মুছে ফেলতে চান?")) { appData[type] = appData[type].filter(i => i.id !== id); updateUI(); }
-        }
+            render() {
+                const container = document.getElementById('appContainer');
+                container.innerHTML = '';
+                const wrapper = document.createElement('div');
+                wrapper.className = 'max-w-6xl mx-auto w-full';
 
-        function updateSimpleAmount(type, id, val) {
-            let idx = appData[type].findIndex(i => i.id === id);
-            if(idx !== -1) { appData[type][idx].amount = Number(val); updateUI(); }
-        }
+                if (this.state.currentView === 'dashboard') wrapper.innerHTML = this.viewDashboard();
+                else if (this.state.currentView === 'invoice') wrapper.innerHTML = this.viewInvoice();
+                else if (this.state.currentView === 'vouchers') wrapper.innerHTML = this.viewVouchers();
+                else if (this.state.currentView === 'cashbook') wrapper.innerHTML = this.viewCashbook();
+                else if (this.state.currentView === 'settings') wrapper.innerHTML = this.viewSettings();
+                else if (this.state.currentView === 'terms') wrapper.innerHTML = this.viewTerms();
 
-        // --- bKash Ledger Logic ---
-        let currentLedgerView = { type: null, id: null };
-        
-        function openLedger(type, id) {
-            currentLedgerView = { type, id };
-            let item = appData[type].find(i => i.id === id);
-            document.getElementById('ledgerTitle').innerText = item.name;
-            document.getElementById('ledgerDate').value = getTodayStr();
-            renderLedgerTable(item);
-            document.getElementById('ledgerModal').classList.remove('hidden');
-        }
-        function closeLedger() { document.getElementById('ledgerModal').classList.add('hidden'); updateUI(); }
-        
-        function addLedgerTransaction() {
-            let { type, id } = currentLedgerView;
-            let date = document.getElementById('ledgerDate').value, details = document.getElementById('ledgerDetails').value;
-            let trType = document.getElementById('ledgerType').value, amount = document.getElementById('ledgerAmount').value;
-            if(!date || !details || !amount) return showToast("তথ্য পূরণ করুন!");
-            let item = appData[type].find(i => i.id === id);
-            item.transactions.push({ id: Date.now(), date, details, type: trType, amount: Number(amount) });
-            renderLedgerTable(item); showToast("যুক্ত হয়েছে!");
-            
-            // clear form
-            document.getElementById('ledgerDetails').value = '';
-            document.getElementById('ledgerAmount').value = '';
-        }
-
-        function deleteTransaction(tId) {
-            if(confirm("মুছবেন?")) {
-                let item = appData[currentLedgerView.type].find(i => i.id === currentLedgerView.id);
-                item.transactions = item.transactions.filter(t => t.id !== tId);
-                renderLedgerTable(item);
+                container.appendChild(wrapper);
             }
-        }
 
-        function renderLedgerTable(item) {
-            let tbody = document.getElementById('ledgerTableBody'), bal = 0;
-            tbody.innerHTML = '';
-            item.transactions.forEach(t => {
-                bal += (t.type === 'dr' ? Number(t.amount) : -Number(t.amount));
-                tbody.innerHTML += `<tr>
-                    <td class="px-4 py-3 border-t border-slate-700/50">${t.date}</td>
-                    <td class="px-4 py-3 border-t border-slate-700/50">${t.details}</td>
-                    <td class="px-4 py-3 text-right text-emerald-400 border-t border-slate-700/50">${t.type === 'dr' ? '+'+Number(t.amount).toLocaleString() : '-'}</td>
-                    <td class="px-4 py-3 text-right text-pink-400 border-t border-slate-700/50">${t.type === 'cr' ? '-'+Number(t.amount).toLocaleString() : '-'}</td>
-                    <td class="px-4 py-3 text-right text-white font-bold border-t border-slate-700/50">৳${bal.toLocaleString()}</td>
-                    <td class="px-4 py-3 text-center border-t border-slate-700/50"><button onclick="deleteTransaction(${t.id})" class="text-rose-500 hover:text-white"><i class="fas fa-trash"></i></button></td>
-                </tr>`;
-            });
-            document.getElementById('ledgerCurrentBalance').innerText = bal.toLocaleString();
-        }
+            sendEmailInvoice(id) {
+                const invoice = this.state.invoices.find(i => i.id === id);
+                if (!invoice) return;
+                const docTitle = invoice.type === 'expense' ? 'Expense Voucher' : 
+                                 invoice.type === 'profit' ? 'Profit Statement' : 'Tax Invoice';
+                const subject = `WADI IT Technology - ${docTitle} (${invoice.id})`;
+                const body = `Dear ${invoice.clientName},\n\nPlease find the details of your ${docTitle} (${invoice.id}) referenced in our records.\n\nThank you,\nWADI IT Technology`;
+                
+                const mailtoLink = `mailto:${invoice.clientEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+                this.toast("Opening email client...", "success");
+            }
 
-        // --- Core UI Updater ---
-        function updateUI() {
-            // Update Dashboard bKash Numbers
-            let cap = getCategoryTotal('capital'), sim = getCategoryTotal('sim'), trn = getCategoryTotal('transaction');
-            let den = getCategoryTotal('denadar'), cash = getCategoryTotal('cash'), bnk = getCategoryTotal('bank');
-            
-            document.getElementById('dashTotalCapital').innerText = cap.toLocaleString();
-            document.getElementById('dashSim').innerText = sim.toLocaleString();
-            document.getElementById('dashTransaction').innerText = trn.toLocaleString();
-            document.getElementById('dashDenadar').innerText = den.toLocaleString();
-            document.getElementById('dashCash').innerText = cash.toLocaleString();
-            document.getElementById('dashBank').innerText = bnk.toLocaleString();
-            
-            let prof = (sim + trn + den + cash + bnk) - cap;
-            let pEl = document.getElementById('dashProfit'); pEl.innerText = prof.toLocaleString();
-            pEl.parentElement.parentElement.parentElement.className = prof >= 0 
-                ? "bg-gradient-to-br from-emerald-600 to-teal-800 rounded-2xl p-6 shadow-2xl mb-6 border border-emerald-500/30 relative overflow-hidden mt-8" 
-                : "bg-gradient-to-br from-rose-600 to-pink-800 rounded-2xl p-6 shadow-2xl mb-6 border border-rose-500/30 relative overflow-hidden mt-8";
+            sendEmailTC() {
+                const subject = `WADI IT Technology - Terms & Conditions`;
+                const body = `Please review the official Terms and Conditions of WADI IT Technology:\n\n${this.state.fullTermsDocument}`;
+                const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+                this.toast("Opening email client...", "success");
+            }
 
-            ['capital','denadar','transaction','sim','cash','bank'].forEach(k => {
-                let el = document.getElementById('headerTotal' + k.charAt(0).toUpperCase() + k.slice(1));
-                if(el) el.innerText = getCategoryTotal(k).toLocaleString();
-            });
+            // --- DASHBOARD VIEW ---
+            viewDashboard() {
+                const earnings = this.state.invoices.filter(i => i.type !== 'expense').reduce((sum, inv) => sum + inv.total, 0);
+                const expenses = this.state.invoices.filter(i => i.type === 'expense').reduce((sum, inv) => sum + inv.total, 0);
+                const count = this.state.invoices.length;
 
-            const renderLedgerList = (type, elId) => {
-                let el = document.getElementById(elId); if(!el) return;
-                el.innerHTML = appData[type].map(i => `
-                    <div class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700 flex justify-between items-center cursor-pointer hover:border-indigo-500 transition" onclick="openLedger('${type}', ${i.id})">
-                        <div><div class="font-bold text-white text-lg">${i.name}</div><div class="text-xs text-slate-400 mt-1">ক্লিক করে লেজার দেখুন <i class="fas fa-arrow-right ml-1"></i></div></div>
-                        <div class="flex gap-4 items-center"><div class="text-2xl font-bold text-indigo-400">৳${getLedgerBalance(i).toLocaleString()}</div>
-                        <button onclick="event.stopPropagation(); deleteKhat('${type}', ${i.id})" class="text-slate-500 hover:text-red-500"><i class="fas fa-trash"></i></button></div>
-                    </div>`).join('');
-            };
-            const renderSimpleList = (type, elId) => {
-                let el = document.getElementById(elId); if(!el) return;
-                el.innerHTML = appData[type].map(i => `
-                    <div class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700 flex justify-between items-center gap-4">
-                        <div class="font-bold text-white text-lg">${i.name}</div>
-                        <div class="flex items-center gap-3 w-48 relative">
-                            <span class="absolute left-4 font-bold text-slate-400">৳</span>
-                            <input type="number" value="${i.amount}" onchange="updateSimpleAmount('${type}', ${i.id}, this.value)" class="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white font-bold text-right outline-none focus:border-indigo-500">
-                            <button onclick="deleteKhat('${type}', ${i.id})" class="text-slate-500 hover:text-rose-500"><i class="fas fa-trash"></i></button>
+                return `
+                    <div class="space-y-6 fade-in-up">
+                        <!-- Smart IT Banner (Redesigned for Mobile & Square Card) -->
+                        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-3xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                            <!-- Background decorative glow -->
+                            <div class="absolute -right-20 -top-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl transition-all duration-700 pointer-events-none"></div>
+                            
+                            <!-- Text Content -->
+                            <div class="relative z-10 flex-1 text-center md:text-left order-2 md:order-1">
+                                <span class="bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-200 text-[10px] md:text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest mb-4 md:mb-6 inline-block">
+                                    Welcome to Portal
+                                </span>
+                                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4 tracking-tight drop-shadow-md">
+                                    Smart IT Management
+                                </h1>
+                                <p class="text-sm md:text-base text-slate-300 mb-6 md:mb-8 font-medium max-w-xl mx-auto md:mx-0 drop-shadow leading-relaxed">
+                                    Manage your invoices, vouchers, and cash book efficiently in one unified, intelligent platform tailored for WADI IT Technology.
+                                </p>
+                                <div class="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4">
+                                    <button onclick="app.openNewInvoice()" class="bg-white text-slate-900 hover:bg-slate-100 px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-bold shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2 text-sm md:text-base w-full sm:w-auto justify-center">
+                                        <i class="fas fa-plus text-primary-600"></i> New Invoice
+                                    </button>
+                                    <button onclick="app.navigate('vouchers')" class="bg-blue-600/30 backdrop-blur-md border border-blue-500/50 hover:bg-blue-600/50 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 text-sm md:text-base w-full sm:w-auto justify-center">
+                                        <i class="fas fa-folder-open"></i> View Vouchers
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Square IT Related Banner Card (6x6 conceptual aspect ratio) -->
+                            <div class="relative z-10 order-1 md:order-2 w-full max-w-[240px] sm:max-w-[280px] md:w-72 lg:w-80 shrink-0 mx-auto group">
+                                <div class="aspect-square rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.3)] border-4 border-slate-700/50 relative transform transition-transform duration-500 group-hover:scale-105 group-hover:border-blue-500/50 group-hover:shadow-[0_0_50px_rgba(59,130,246,0.5)]">
+                                    <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Smart IT Technology Banner" class="w-full h-full object-cover transition-transform duration-700 scale-105 group-hover:scale-100">
+                                    <!-- Blue Overlay Overlay -->
+                                    <div class="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent mix-blend-multiply"></div>
+                                    <!-- Decorative elements on card -->
+                                    <div class="absolute bottom-4 left-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-xl flex items-center gap-3 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-microchip"></i></div>
+                                        <div>
+                                            <div class="text-xs font-bold text-white uppercase tracking-wider">IT Enabled</div>
+                                            <div class="text-[10px] text-blue-200">System Active</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>`).join('');
-            };
 
-            renderLedgerList('capital', 'capitalList'); renderLedgerList('denadar', 'denadarList'); renderLedgerList('transaction', 'transactionList');
-            renderSimpleList('sim', 'simList'); renderSimpleList('cash', 'cashList'); renderSimpleList('bank', 'bankList');
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 stagger-1 fade-in-up">
+                                    <p class="text-2xl font-extrabold text-rose-600">${formatMoney(expenses)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- TERMS & CONDITIONS VIEW ---
+            viewTerms() {
+                return `
+                    <div class="fade-in-up bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden print:shadow-none print:border-none print:rounded-none">
+                        <div class="no-print p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-wrap gap-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                <i class="fas fa-file-contract text-primary-500 mr-2"></i> Official Terms & Conditions
+                            </h3>
+                            <div class="flex gap-3">
+                                <button onclick="app.sendEmailTC()" class="bg-blue-50 text-blue-700 hover:bg-blue-100 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                    <i class="fas fa-paper-plane mr-2"></i>Send via Email
+                                </button>
+                                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-md">
+                                    <i class="fas fa-print mr-2"></i>Print T&C PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-10 md:p-16 print:p-0">
+                            <div class="text-center mb-10 pb-6 border-b-2 border-slate-100">
+                                <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">
+                                    <span class="text-blue-600">WADI</span> 
+                                    <span class="text-emerald-600">IT</span> 
+                                    <span class="text-rose-600">TECHNOLOGY</span>
+                                </h1>
+                                <p class="text-slate-500 font-medium mb-6">Dhampara, Wasa, Chittagong</p>
+                                <span class="px-5 py-2 border-2 rounded-lg font-bold tracking-widest uppercase text-sm border-slate-200 text-slate-600 bg-slate-50">
+                                    TERMS & CONDITIONS
+                                </span>
+                            </div>
+                            <div class="text-sm md:text-base text-slate-800 whitespace-pre-wrap leading-loose font-medium">
+                                ${this.state.fullTermsDocument}
+                            </div>
+                            <div class="mt-24 pt-8 border-t border-slate-100 text-center flex justify-end">
+                                <div class="w-48 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">Authorized Signature</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- INVOICE VIEW ---
+            viewInvoice() {
+                let subtotal = this.state.draft.items.reduce((s, i) => s + (i.qty * i.price), 0);
+                let tax = (this.state.draft.type === 'billing') ? (subtotal * this.state.taxRate) / 100 : 0;
+                let total = subtotal + tax;
+                
+                const isBilling = this.state.draft.type === 'billing';
+                const isExpense = this.state.draft.type === 'expense';
+                const isProfit = this.state.draft.type === 'profit';
+                
+                let activeList = isBilling ? this.state.services : 
+                                 isExpense ? this.state.expenseCategories : 
+                                 this.state.profitCategories;
+
+                const activeIds = activeList.map(s => s.id);
+                // Custom items are those that start with 'custom_' OR were from a category that got deleted from settings
+                const customItems = this.state.draft.items.filter(i => String(i.serviceId).startsWith('custom_') || !activeIds.includes(i.serviceId));
+                                 
+                let listLabel = isBilling ? "Select Services to Bill" : 
+                                isExpense ? "Select Expense Categories (খাত)" : 
+                                "Select Profit Sources (খাত)";
+
+                // Generate Checkbox Items
+                const predefinedHtml = activeList.map(activeItem => {
+                    const item = this.state.draft.items.find(i => i.serviceId === activeItem.id);
+                    const isChecked = !!item;
+
+                    return `
+                        <div class="p-4 lg:p-5 border-b border-slate-100 bg-white hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center gap-4 group">
+                            <div class="flex-1 flex items-center gap-3">
+                                <div class="relative flex items-center justify-center shrink-0">
+                                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="app.toggleServiceCheckbox(${activeItem.id})" class="peer w-6 h-6 rounded border-slate-300 text-primary-600 focus:ring-primary-500 cursor-pointer appearance-none bg-slate-100 checked:bg-primary-600 checked:border-primary-600 transition-all border shadow-sm">
+                                    <i class="fas fa-check absolute text-white text-xs opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></i>
+                                </div>
+                                <label class="font-bold text-slate-700 text-sm md:text-base cursor-pointer select-none leading-tight" onclick="app.toggleServiceCheckbox(${activeItem.id})">
+                                    ${activeItem.name}
+                                    ${isBilling && !isChecked ? `<span class="ml-0 sm:ml-2 mt-1 sm:mt-0 block sm:inline-block text-[10px] sm:text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Base: ${formatMoney(activeItem.price)}</span>` : ''}
+                                </label>
+                            </div>
+                            
+                            ${isChecked ? `
+                                <div class="flex gap-2 sm:gap-3 w-full md:w-auto mt-3 md:mt-0 fade-in pl-0 sm:pl-9 md:pl-0">
+                                    <div class="w-1/3 md:w-20 lg:w-24 shrink-0">
+                                        <label class="block text-[10px] md:text-[11px] font-bold text-slate-400 uppercase mb-1">Qty</label>
+                                        <input type="number" min="1" value="${item.qty}" onchange="app.updateItem('${item.id}', 'qty', parseFloat(this.value)||1)" class="w-full text-xs sm:text-sm rounded-lg sm:rounded-xl border-slate-200 focus:border-primary-500 p-2 sm:p-2.5 border text-center bg-white shadow-sm" ${!isBilling ? 'disabled' : ''}>
+                                    </div>
+                                    <div class="w-1/3 md:w-28 lg:w-32 shrink-0">
+                                        <label class="block text-[10px] md:text-[11px] font-bold text-slate-400 uppercase mb-1">Rate</label>
+                                        <input type="number" min="0" value="${item.price}" onchange="app.updateItem('${item.id}', 'price', parseFloat(this.value)||0)" class="w-full text-xs sm:text-sm rounded-lg sm:rounded-xl border-slate-200 focus:border-primary-500 p-2 sm:p-2.5 border text-right bg-white shadow-sm">
+                                    </div>
+                                    <div class="w-1/3 md:w-28 lg:w-32 text-right shrink-0">
+                                        <label class="block text-[10px] md:text-[11px] font-bold text-slate-400 uppercase mb-1">Total</label>
+                                        <div class="p-2 sm:p-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-slate-100/80 rounded-lg sm:rounded-xl border border-slate-100 h-[36px] sm:h-[42px] flex items-center justify-end">
+                                            ${formatMoney(item.qty * item.price)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                // Generate Custom Entry Items
+                const customHtml = customItems.map(item => `
+                    <div class="p-4 lg:p-5 border-b border-slate-200 bg-amber-50/20 hover:bg-amber-50 transition-colors flex flex-col md:flex-row md:items-center gap-3 sm:gap-4 relative group">
+                        <button onclick="app.removeItem('${item.id}')" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-slate-300 hover:text-red-500 p-2 transition-all hover:bg-red-50 rounded-lg z-10 md:hidden" title="Remove">
+                            <i class="fas fa-times text-base sm:text-lg"></i>
+                        </button>
+                        
+                        <div class="flex-1 pr-8 sm:pr-12 md:pr-0">
+                            <label class="block text-[10px] md:text-[11px] font-bold text-amber-600/70 uppercase mb-1.5"><i class="fas fa-pen mr-1"></i> Custom Entry Description</label>
+                            <input type="text" placeholder="Enter description..." value="${item.description}" onchange="app.updateItem('${item.id}', 'description', this.value)" class="w-full text-xs sm:text-sm rounded-lg sm:rounded-xl border-amber-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 p-2 sm:p-2.5 border bg-white shadow-sm">
+                        </div>
+                        
+                        <div class="flex gap-2 sm:gap-3 w-full md:w-auto mt-2 md:mt-0 pl-0 shrink-0">
+                            <div class="w-1/3 md:w-20 lg:w-24 shrink-0">
+                                <label class="block text-[10px] md:text-[11px] font-bold text-slate-400 uppercase mb-1">Qty</label>
+                                <input type="number" min="1" value="${item.qty}" onchange="app.updateItem('${item.id}', 'qty', parseFloat(this.value)||1)" class="w-full text-xs sm:text-sm rounded-lg sm:rounded-xl border-amber-200 focus:border-amber-500 p-2 sm:p-2.5 border text-center bg-white shadow-sm" ${!isBilling ? 'disabled' : ''}>
+                            </div>
+                            <div class="w-1/3 md:w-28 lg:w-32 shrink-0">
+                                <label class="block text-[10px] md:text-[11px] font-bold text-slate-400 uppercase mb-1">Rate</label>
+                                <input type="number" min="0" value="${item.price}" onchange="app.updateItem('${item.id}', 'price', parseFloat(this.value)||0)" class="w-full text-xs sm:text-sm rounded-lg sm:rounded-xl border-amber-200 focus:border-amber-500 p-2 sm:p-2.5 border text-right bg-white shadow-sm">
+                            </div>
+                            <div class="w-1/3 md:w-28 lg:w-32 text-right shrink-0">
+                                <label class="block text-[10px] md:text-[11px] font-bold text-slate-400 uppercase mb-1">Total</label>
+                                <div class="p-2 sm:p-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-amber-100/50 rounded-lg sm:rounded-xl border border-amber-100 h-[36px] sm:h-[42px] flex items-center justify-end">
+                                    ${formatMoney(item.qty * item.price)}
+                                </div>
+                            </div>
+                            <button onclick="app.removeItem('${item.id}')" class="hidden md:flex text-slate-300 hover:text-red-500 p-2 transition-all hover:bg-red-50 rounded-lg self-end h-[42px] items-center justify-center w-10 shrink-0" title="Remove">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="fade-in-up glass-panel rounded-2xl shadow-soft border border-white/50 overflow-hidden">
+                        
+                        <!-- Top Bar -->
+                        <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-6 lg:p-10 flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+                            <div class="absolute z-10">
+                                <span class="bg-primary-500/20 text-primary-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block border border-primary-500/30">
+                                    ${this.state.editingId ? `Editing: ${this.state.editingId}` : 'New Document'}
+                                </span>
+                                <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+                                    ${this.state.editingId ? 'UPDATE VOUCHER' : 'CREATE VOUCHER'}
+                                </h2>
+                                <p class="text-slate-300 text-sm mt-2 font-medium">WADI IT TECHNOLOGY</p>
+                            </div>
+                        </div>
+
+                        <!-- Document Type Selector -->
+                        <div class="p-6 lg:px-10 border-b border-slate-100 bg-slate-50/50">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Select Document Type</label>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="app.updateDraft('type', 'billing')" class="px-5 py-2.5 rounded-xl font-bold text-sm border-2 transition-all flex items-center gap-2 ${this.state.draft.type === 'billing' ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-200 text-slate-500 hover:border-slate-300 bg-white'}">
+                                    <i class="fas fa-file-invoice"></i> Billing / Invoice
+                                </button>
+                                <button onclick="app.updateDraft('type', 'expense')" class="px-5 py-2.5 rounded-xl font-bold text-sm border-2 transition-all flex items-center gap-2 ${this.state.draft.type === 'expense' ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-sm' : 'border-slate-200 text-slate-500 hover:border-slate-300 bg-white'}">
+                                    <i class="fas fa-hand-holding-usd"></i> Expense
+                                </button>
+                                <button onclick="app.updateDraft('type', 'profit')" class="px-5 py-2.5 rounded-xl font-bold text-sm border-2 transition-all flex items-center gap-2 ${this.state.draft.type === 'profit' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm' : 'border-slate-200 text-slate-500 hover:border-slate-300 bg-white'}">
+                                    <i class="fas fa-chart-line"></i> Profit
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Info Grid -->
+                        <div class="p-6 lg:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 border-b border-slate-100 bg-white/40">
+                            <div class="space-y-4">
+                                <h3 class="text-xs font-bold text-primary-600 uppercase tracking-widest flex items-center mb-4">
+                                    <i class="fas ${isExpense ? 'fa-building' : 'fa-user-tie'} mr-2"></i> ${isExpense ? 'Payee / Vendor Info' : isProfit ? 'Source Info' : 'Billed To'}
+                                </h3>
+                                <div>
+                                    <input type="text" placeholder="${isExpense ? 'Payee Name' : 'Client Name or Company Name'}" value="${this.state.draft.clientName}" onchange="app.updateDraft('clientName', this.value)" class="w-full text-base rounded-xl border-slate-200 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 p-3.5 border font-semibold bg-white">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <input type="email" placeholder="Email Address" value="${this.state.draft.clientEmail}" onchange="app.updateDraft('clientEmail', this.value)" class="w-full text-sm rounded-xl border-slate-200 shadow-sm focus:border-primary-500 p-3 border bg-white">
+                                    </div>
+                                    <div>
+                                        <input type="tel" placeholder="Phone Number" value="${this.state.draft.clientPhone}" onchange="app.updateDraft('clientPhone', this.value)" class="w-full text-sm rounded-xl border-slate-200 shadow-sm focus:border-primary-500 p-3 border bg-white">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-xs font-bold text-primary-600 uppercase tracking-widest flex items-center mb-4">
+                                    <i class="fas fa-file-alt mr-2"></i> Document Details
+                                </h3>
+                                <div class="bg-white rounded-xl border border-slate-200 p-1 flex shadow-sm items-center">
+                                    <span class="bg-slate-50 text-slate-500 text-sm font-semibold px-4 py-3.5 rounded-lg border-r border-slate-200 flex-shrink-0">Date</span>
+                                    <input type="date" value="${this.state.draft.date}" onchange="app.updateDraft('date', this.value)" class="w-full text-base p-3.5 bg-transparent border-none focus:ring-0 text-slate-700 font-medium">
+                                </div>
+                                <div>
+                                    <input type="text" placeholder="Internal Note / Cost Details (Optional)" value="${this.state.draft.note}" onchange="app.updateDraft('note', this.value)" class="w-full text-base sm:text-sm rounded-xl border-slate-200 shadow-sm focus:border-primary-500 p-3.5 border bg-white mt-1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox Items Table -->
+                        <div class="bg-white/60">
+                            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                                <i class="fas fa-list-check text-slate-400"></i>
+                                <label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">${listLabel}</label>
+                            </div>
+                            
+                            ${predefinedHtml}
+                            ${customHtml}
+
+                            <div class="p-4 lg:p-6 bg-slate-50/50 border-b border-slate-100 flex justify-center">
+                                <button onclick="app.addCustomItem()" class="inline-flex items-center justify-center px-6 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl transition-all shadow-sm active:scale-95">
+                                    <i class="fas fa-plus text-primary-500 mr-2"></i> Add Custom Entry
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Footer / Totals -->
+                        <div class="p-6 lg:p-10 flex flex-col md:flex-row justify-between items-start gap-10 bg-white">
+                            <div class="w-full md:w-1/2">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Short Terms / Footer Note</label>
+                                <textarea onchange="app.updateDraft('terms', this.value)" class="w-full text-sm rounded-xl border-slate-200 shadow-sm focus:border-primary-500 p-4 border bg-slate-50 focus:bg-white transition-colors min-h-[120px]">${this.state.draft.terms}</textarea>
+                                
+                                <div class="mt-4 flex items-center gap-2">
+                                    <input type="checkbox" id="includeTCCheckbox" ${this.state.draft.includeTC !== false ? 'checked' : ''} onchange="app.updateDraft('includeTC', this.checked)" class="w-5 h-5 text-primary-600 rounded border-slate-300 focus:ring-primary-500 cursor-pointer">
+                                    <label for="includeTCCheckbox" class="text-sm font-bold text-slate-700 cursor-pointer select-none">Include Full T&C Page in Print</label>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-2"><i class="fas fa-info-circle"></i> If checked, the full detailed Terms & Conditions document will be appended automatically as a new page during print.</p>
+                            </div>
+                            
+                            <div class="w-full md:w-[400px] bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-sm">
+                                <div class="space-y-4">
+                                    <div class="flex justify-between text-sm text-slate-500 font-medium">
+                                        <span>Subtotal</span>
+                                        <span class="text-slate-800">${formatMoney(subtotal)}</span>
+                                    </div>
+                                    ${isBilling ? `
+                                    <div class="flex justify-between text-sm text-slate-500 font-medium">
+                                        <span>VAT / Tax (${this.state.taxRate}%)</span>
+                                        <span class="text-slate-800">${formatMoney(tax)}</span>
+                                    </div>` : ''}
+                                    <div class="h-px bg-slate-200 w-full my-4"></div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-base font-bold text-slate-800 uppercase tracking-wide">Grand Total</span>
+                                        <span class="text-2xl font-extrabold text-primary-600 tracking-tight">${formatMoney(total)}</span>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="app.saveInvoice()" class="mt-8 w-full group relative overflow-hidden bg-slate-900 text-white font-semibold py-4 px-6 rounded-xl shadow-xl shadow-slate-900/20 transition-all hover:shadow-slate-900/40 hover:-translate-y-0.5 flex justify-center items-center gap-3">
+                                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <i class="fas fa-save relative z-10 text-lg"></i>
+                                    <span class="relative z-10">${this.state.editingId ? 'Update & Save Document' : 'Generate & Save Document'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            updateDraft(field, val) { 
+                this.state.draft[field] = val; 
+                if (field === 'type') {
+                    // Reset selected items when changing document type
+                    this.state.draft.items = [];
+                    this.render();
+                }
+            }
             
-            // Medicine UI Update
-            renderMedCashBook();
-            renderMedShortList();
+            toggleServiceCheckbox(serviceId) {
+                const list = this.state.draft.type === 'billing' ? this.state.services : 
+                             this.state.draft.type === 'expense' ? this.state.expenseCategories : 
+                             this.state.profitCategories;
+                
+                const svc = list.find(s => s.id == serviceId);
+                const existingIdx = this.state.draft.items.findIndex(i => i.serviceId === serviceId);
+                
+                if (existingIdx >= 0) {
+                    // Remove from list
+                    this.state.draft.items.splice(existingIdx, 1);
+                } else if (svc) {
+                    // Add to list
+                    this.state.draft.items.push({
+                        id: 'item_' + Date.now() + Math.floor(Math.random() * 1000),
+                        serviceId: svc.id,
+                        description: svc.name,
+                        qty: 1,
+                        price: this.state.draft.type === 'billing' ? (svc.price || 0) : 0
+                    });
+                }
+                this.render();
+            }
+
+            updateItem(id, field, val) {
+                const item = this.state.draft.items.find(i => i.id === id);
+                if (item) {
+                    item[field] = val;
+                    this.render();
+                }
+            }
+
+            addCustomItem() {
+                this.state.draft.items.push({ 
+                    id: 'custom_item_' + Date.now(), 
+                    serviceId: 'custom_' + Date.now(), 
+                    description: '', 
+                    qty: 1, 
+                    price: 0 
+                });
+                this.render();
+            }
+
+            removeItem(id) {
+                this.state.draft.items = this.state.draft.items.filter(i => i.id !== id);
+                this.render();
+            }
+
+            saveInvoice() {
+                if (!this.state.draft.clientName.trim()) {
+                    this.toast("Name/Payee field is required.", "error");
+                    return;
+                }
+                
+                if (this.state.draft.items.length === 0) {
+                    this.toast("Please select at least one item or service.", "error");
+                    return;
+                }
+
+                let subtotal = this.state.draft.items.reduce((s, i) => s + (i.qty * i.price), 0);
+                let tax = (this.state.draft.type === 'billing') ? (subtotal * this.state.taxRate) / 100 : 0;
+                let total = subtotal + tax;
+
+                if (total <= 0) {
+                    this.toast("Document total must be greater than zero.", "error");
+                    return;
+                }
+
+                // Deep copy items
+                const savedItems = JSON.parse(JSON.stringify(this.state.draft.items));
+
+                const newInvoice = {
+                    id: this.state.editingId || generateId(),
+                    type: this.state.draft.type,
+                    date: this.state.draft.date,
+                    clientName: this.state.draft.clientName,
+                    clientEmail: this.state.draft.clientEmail,
+                    clientPhone: this.state.draft.clientPhone,
+                    note: this.state.draft.note,
+                    items: savedItems,
+                    subtotal: subtotal,
+                    tax: tax,
+                    total: total,
+                    terms: this.state.draft.terms,
+                    includeTC: this.state.draft.includeTC !== false
+                };
+
+                if (this.state.editingId) {
+                    const index = this.state.invoices.findIndex(i => i.id === this.state.editingId);
+                    if(index !== -1) {
+                        this.state.invoices[index] = newInvoice;
+                        this.toast(`Document ${newInvoice.id} updated successfully.`);
+                    }
+                    this.state.editingId = null;
+                } else {
+                    this.state.invoices.unshift(newInvoice);
+                    this.toast(`Document ${newInvoice.id} generated! Saved to Vouchers & Cash Book.`);
+                    
+                    // Simulate automatic email sending
+                    if (newInvoice.clientEmail) {
+                        setTimeout(() => this.toast(`Automated Email dispatched to ${newInvoice.clientEmail}`, "success"), 1500);
+                    }
+                }
+
+                this.state.draft = this.getEmptyDraft();
+                
+                setTimeout(() => this.navigate('vouchers'), 1000);
+            }
+
+            editVoucher(id) {
+                const invoice = this.state.invoices.find(i => i.id === id);
+                if (!invoice) return;
+                this.state.editingId = id;
+                this.state.draft = JSON.parse(JSON.stringify(invoice));
+                this.navigate('invoice');
+            }
+
+            confirmDelete(id) {
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 fade-in';
+                overlay.innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl fade-in-up text-center">
+                        <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Delete Voucher?</h3>
+                        <p class="text-slate-500 text-sm mb-6">Are you sure you want to delete ${id}? This will remove it from the Cash Book and Vouchers.</p>
+                        <div class="flex gap-3">
+                            <button id="cancelDelBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-colors">Cancel</button>
+                            <button id="confirmDelBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-red-500/30">Delete</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+
+                document.getElementById('cancelDelBtn').onclick = () => overlay.remove();
+                document.getElementById('confirmDelBtn').onclick = () => {
+                    this.state.invoices = this.state.invoices.filter(i => i.id !== id);
+                    this.toast(`Voucher ${id} deleted successfully.`, "success");
+                    overlay.remove();
+                    this.render(); 
+                };
+            }
+
+            // --- VOUCHERS VIEW ---
+            viewVouchers() {
+                const voucherCards = this.state.invoices.length === 0 ? 
+                    `<div class="col-span-full py-16 text-center text-slate-500 font-medium">No vouchers created yet.</div>` :
+                    this.state.invoices.map((inv, idx) => `
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col stagger-${(idx%3)+1} fade-in-up cursor-pointer" onclick="app.openModal('${inv.id}')">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 font-mono">
+                                    ${inv.id}
+                                </div>
+                                ${inv.type === 'expense' ? '<span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded uppercase">Expense</span>' : ''}
+                                ${inv.type === 'profit' ? '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded uppercase">Profit</span>' : ''}
+                                ${inv.type === 'billing' ? '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded uppercase">Billing</span>' : ''}
+                            </div>
+                            <div class="text-xs text-slate-500 font-medium bg-slate-50 px-2 py-1 rounded">${inv.date}</div>
+                        </div>
+                        <div class="mb-4 flex-1">
+                            <h4 class="font-bold text-slate-800 text-lg mb-1 truncate">${inv.clientName}</h4>
+                            <p class="text-sm text-slate-500 truncate"><i class="fas fa-envelope mr-1"></i>${inv.clientEmail || 'N/A'}</p>
+                            <p class="text-sm text-slate-500 truncate mt-1"><i class="fas fa-phone mr-1"></i>${inv.clientPhone || 'N/A'}</p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-100 flex justify-between items-end mt-auto">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                            <span class="text-xl font-extrabold text-primary-600">${formatMoney(inv.total)}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm fade-in-up">
+                            <div class="font-bold text-slate-700 flex items-center gap-2">
+                                <i class="fas fa-folder-open text-primary-500"></i> Document Library
+                            </div>
+                            <button onclick="app.openNewInvoice()" class="bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                Create New
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${voucherCards}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- CASHBOOK VIEW ---
+            viewCashbook() {
+                // Calculate Running Balances (Oldest to Newest)
+                let balance = 0;
+                const ledgerEntries = [...this.state.invoices].reverse().map(inv => {
+                    const isCredit = inv.type === 'expense'; // Money Out
+                    const isDebit = !isCredit;               // Money In (Billing / Profit)
+                    
+                    const dr = isDebit ? inv.total : 0;
+                    const cr = isCredit ? inv.total : 0;
+                    
+                    balance += (dr - cr);
+                    
+                    return { ...inv, dr, cr, balance };
+                }).reverse(); // Reverse back for newest first display
+
+                const tableRows = ledgerEntries.length === 0 ? 
+                    `<tr><td colspan="7" class="px-6 py-12 text-center text-slate-500 font-medium bg-white">No transactions recorded.</td></tr>` :
+                    ledgerEntries.map((inv, idx) => `
+                    <tr class="hover:bg-primary-50/50 transition-colors border-b border-slate-100 bg-white stagger-${(idx%3)+1} fade-in-up">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-medium">${inv.date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button onclick="app.openModal('${inv.id}')" class="text-sm font-bold text-primary-600 hover:text-primary-800 hover:underline flex items-center gap-1">
+                                ${inv.id} <i class="fas fa-external-link-alt text-[10px]"></i>
+                            </button>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-slate-700 font-medium block truncate max-w-[150px]">${inv.clientName}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
+                                inv.type === 'expense' ? 'bg-rose-100 text-rose-700' :
+                                inv.type === 'profit' ? 'bg-emerald-100 text-emerald-700' :
+                                'bg-blue-100 text-blue-700'
+                            }">${inv.type}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-emerald-600 text-sm">
+                            ${inv.dr ? formatMoney(inv.dr) : '-'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-rose-500 text-sm">
+                            ${inv.cr ? formatMoney(inv.cr) : '-'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-slate-800 text-base bg-slate-50/50">
+                            ${formatMoney(inv.balance)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <button onclick="app.editVoucher('${inv.id}')" class="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded transition-colors mr-1" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="app.confirmDelete('${inv.id}')" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded transition-colors" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="space-y-6">
+                        <div class="fade-in-up glass-panel rounded-2xl shadow-soft border border-white overflow-hidden">
+                            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white/50">
+                                <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                    <i class="fas fa-book text-primary-500 mr-2"></i> Standard Cash Book Ledger
+                                </h3>
+                                <span class="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Double-Entry View</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead class="bg-slate-50/80 border-b border-slate-200">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Ref No.</th>
+                                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Details</th>
+                                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                                            <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-emerald-600 uppercase tracking-wider">Dr (In)</th>
+                                            <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-rose-500 uppercase tracking-wider">Cr (Out)</th>
+                                            <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Balance</th>
+                                            <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${tableRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- SETTINGS VIEW ---
+            viewSettings() {
+                const genListHtml = (list, type, showPrice = false) => list.map(s => `
+                    <div class="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl group hover:border-primary-200 transition-colors shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center font-bold text-sm">
+                                <i class="fas ${showPrice ? 'fa-cube' : 'fa-tag'}"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm">${s.name}</div>
+                                ${showPrice ? `<div class="text-[10px] font-semibold text-slate-500 mt-0.5">Base Rate: ${formatMoney(s.price)}</div>` : ''}
+                            </div>
+                        </div>
+                        <button onclick="app.delCategory('${type}', ${s.id})" class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all" title="Remove">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Left Column: Master Settings & T&C -->
+                        <div class="space-y-8">
+                            <div class="fade-in-up glass-panel rounded-2xl shadow-soft border border-white overflow-hidden">
+                                <div class="p-6 border-b border-slate-100 bg-white/50">
+                                    <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i> Document Configurations
+                                    </h3>
+                                </div>
+                                <div class="p-6 bg-white space-y-6">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Billing VAT / Tax Rate (%)</label>
+                                        <div class="flex items-center">
+                                            <input type="number" id="taxInput" value="${this.state.taxRate}" class="w-full text-base font-bold rounded-l-xl border-slate-200 shadow-sm focus:border-primary-500 p-3 border bg-slate-50">
+                                            <button onclick="app.saveTax()" class="bg-slate-900 hover:bg-primary-600 text-white px-6 py-3 rounded-r-xl font-semibold transition-colors shadow-md whitespace-nowrap">
+                                                Save Rate
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Full Terms & Conditions Document Paper</label>
+                                        <p class="text-xs text-slate-500 mb-2">This text will be printed as a secondary page attached to every generated voucher/invoice.</p>
+                                        <textarea id="fullTermsInput" class="w-full text-sm rounded-xl border-slate-200 shadow-sm focus:border-primary-500 p-4 border bg-slate-50 min-h-[250px] whitespace-pre-wrap font-sans leading-relaxed">${this.state.fullTermsDocument}</textarea>
+                                        <button onclick="app.saveFullTerms()" class="mt-3 w-full bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md flex items-center justify-center gap-2">
+                                            <i class="fas fa-save"></i> Save T&C Document
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Categories Management -->
+                        <div class="space-y-8 fade-in-up stagger-1">
+                            
+                            <!-- Services Manager -->
+                            <div class="glass-panel rounded-2xl shadow-soft border border-white overflow-hidden flex flex-col max-h-[400px]">
+                                <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                                    <h3 class="text-sm font-bold text-slate-800 flex items-center"><i class="fas fa-boxes text-blue-500 mr-2"></i> Billing Services</h3>
+                                </div>
+                                <div class="p-4 bg-white border-b border-slate-100 shrink-0">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="add_services_name" placeholder="Service Name" class="w-full text-sm rounded-lg border-slate-200 p-2 border">
+                                        <input type="number" id="add_services_price" placeholder="Rate" class="w-24 text-sm rounded-lg border-slate-200 p-2 border">
+                                        <button onclick="app.addCategory('services')" class="bg-blue-600 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="p-4 space-y-2 overflow-y-auto flex-1 bg-slate-50/50">
+                                    ${genListHtml(this.state.services, 'services', true)}
+                                </div>
+                            </div>
+
+                            <!-- Expense Manager -->
+                            <div class="glass-panel rounded-2xl shadow-soft border border-white overflow-hidden flex flex-col max-h-[300px]">
+                                <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                                    <h3 class="text-sm font-bold text-slate-800 flex items-center"><i class="fas fa-hand-holding-usd text-rose-500 mr-2"></i> Expense Categories (খাত)</h3>
+                                </div>
+                                <div class="p-4 bg-white border-b border-slate-100 shrink-0">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="add_expenseCategories_name" placeholder="New Expense Category..." class="w-full text-sm rounded-lg border-slate-200 p-2 border">
+                                        <button onclick="app.addCategory('expenseCategories')" class="bg-rose-600 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="p-4 space-y-2 overflow-y-auto flex-1 bg-slate-50/50">
+                                    ${genListHtml(this.state.expenseCategories, 'expenseCategories')}
+                                </div>
+                            </div>
+
+                            <!-- Profit Manager -->
+                            <div class="glass-panel rounded-2xl shadow-soft border border-white overflow-hidden flex flex-col max-h-[300px]">
+                                <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                                    <h3 class="text-sm font-bold text-slate-800 flex items-center"><i class="fas fa-chart-line text-emerald-500 mr-2"></i> Profit Sources (খাত)</h3>
+                                </div>
+                                <div class="p-4 bg-white border-b border-slate-100 shrink-0">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="add_profitCategories_name" placeholder="New Profit Source..." class="w-full text-sm rounded-lg border-slate-200 p-2 border">
+                                        <button onclick="app.addCategory('profitCategories')" class="bg-emerald-600 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="p-4 space-y-2 overflow-y-auto flex-1 bg-slate-50/50">
+                                    ${genListHtml(this.state.profitCategories, 'profitCategories')}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+            }
+
+            saveTax() {
+                const val = parseFloat(document.getElementById('taxInput').value);
+                if (!isNaN(val) && val >= 0) {
+                    this.state.taxRate = val;
+                    this.toast(`Global tax rate set to ${val}%`);
+                } else this.toast("Invalid tax percentage.", "error");
+            }
+
+            saveFullTerms() {
+                const val = document.getElementById('fullTermsInput').value;
+                this.state.fullTermsDocument = val;
+                this.toast("Full Terms & Conditions Paper Saved!");
+            }
+
+            addCategory(type) {
+                const nameInput = document.getElementById(`add_${type}_name`);
+                const name = nameInput.value.trim();
+                
+                if(!name) {
+                    this.toast("Name cannot be empty.", "error");
+                    return;
+                }
+
+                const newItem = { id: Date.now(), name };
+                
+                if (type === 'services') {
+                    const price = parseFloat(document.getElementById(`add_${type}_price`).value) || 0;
+                    newItem.price = price;
+                }
+                
+                this.state[type].push(newItem);
+                this.toast("Item added successfully.");
+                this.render();
+            }
+
+            delCategory(type, id) {
+                this.state[type] = this.state[type].filter(s => s.id != id);
+                this.toast("Item removed.");
+                this.render();
+            }
+
+            // --- TERMS VIEW ---
+            viewTerms() {
+                return `
+                    <div class="fade-in-up glass-panel rounded-2xl shadow-soft border border-white p-6 md:p-10 bg-white">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b-2 border-slate-100 no-print gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Company Terms & Conditions</h2>
+                                <p class="text-slate-500">Official document for client reference.</p>
+                            </div>
+                            <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-md flex items-center gap-2">
+                                <i class="fas fa-print"></i> Print PDF
+                            </button>
+                        </div>
+                        
+                        <!-- Printable Area -->
+                        <div class="print-tc-container">
+                            <div class="text-center mb-10 pb-6 border-b-2 border-slate-100 hidden print:block">
+                                <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">
+                                    <span class="text-blue-600">WADI</span> 
+                                    <span class="text-emerald-600">IT</span> 
+                                    <span class="text-rose-600">TECHNOLOGY</span>
+                                </h1>
+                                <p class="text-slate-500 font-medium mb-6">Dhampara, Wasa, Chittagong</p>
+                                <span class="px-5 py-2 border-2 rounded-lg font-bold tracking-widest uppercase text-sm border-slate-200 text-slate-600 bg-slate-50">
+                                    TERMS & CONDITIONS
+                                </span>
+                            </div>
+                            
+                            <div class="text-sm text-slate-800 whitespace-pre-wrap leading-loose font-medium px-2 md:px-10">
+                                ${this.state.fullTermsDocument}
+                            </div>
+                            
+                            <div class="mt-24 pt-8 border-t border-slate-100 text-center flex justify-end px-10 hidden print:flex">
+                                <div class="w-48 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">Authorized Signature</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- EMAIL CLIENT ---
+            sendEmail(id) {
+                const invoice = this.state.invoices.find(i => i.id === id);
+                if (!invoice) return;
+                
+                if (!invoice.clientEmail) {
+                    this.toast("No email address provided for this client.", "error");
+                    return;
+                }
+                
+                const subject = encodeURIComponent(`Document ${id} from WADI IT Technology`);
+                const body = encodeURIComponent(`Dear ${invoice.clientName},\n\nPlease find the details for your recent document (${id}) below.\n\nTotal Amount: ${formatMoney(invoice.total)}\n\nPlease let us know if you have any questions.\n\nBest Regards,\nWADI IT Technology`);
+                
+                window.location.href = `mailto:${invoice.clientEmail}?subject=${subject}&body=${body}`;
+            }
+
+            // --- MODAL SYSTEM ---
+            openModal(voucherId) {
+                document.body.classList.add('printing-modal');
+                const invoice = this.state.invoices.find(i => i.id === voucherId);
+                if (!invoice) return;
+
+                const docTitle = invoice.type === 'expense' ? 'EXPENSE VOUCHER' : 
+                                 invoice.type === 'profit' ? 'PROFIT STATEMENT' : 
+                                 'TAX INVOICE / BILLING';
+                                 
+                const titleColor = invoice.type === 'expense' ? 'border-rose-200 text-rose-600 bg-rose-50' : 
+                                   invoice.type === 'profit' ? 'border-emerald-200 text-emerald-600 bg-emerald-50' : 
+                                   'border-blue-200 text-blue-600 bg-blue-50';
+
+                const isBilling = invoice.type === 'billing';
+
+                const modal = document.getElementById('voucherModal');
+                const content = document.getElementById('modalContent');
+                document.getElementById('modalTitle').textContent = docTitle;
+                
+                document.getElementById('modalActionButtons').innerHTML = `
+                    <button onclick="app.sendEmailInvoice('${voucherId}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Mail
+                    </button>
+                    <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print PDF
+                    </button>
+                    <button onclick="app.closeModal()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                        <i class="fas fa-times mr-2"></i>Close
+                    </button>
+                `;
+
+                const itemsList = invoice.items.map(i => `
+                    <tr class="border-b border-slate-200">
+                        <td class="py-3 text-sm text-slate-700">${i.description || 'Custom Entry'}</td>
+                        <td class="py-3 text-sm text-slate-700 text-center">${isBilling ? i.qty : '-'}</td>
+                        <td class="py-3 text-sm text-slate-700 text-right">${formatMoney(i.price)}</td>
+                        <td class="py-3 text-sm font-semibold text-slate-800 text-right">${formatMoney(i.qty * i.price)}</td>
+                    </tr>
+                `).join('');
+
+                content.innerHTML = `
+                    <div class="text-center mb-10 pb-6 border-b-2 border-slate-100">
+                        <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">
+                            <span class="text-blue-600">WADI</span> 
+                            <span class="text-emerald-600">IT</span> 
+                            <span class="text-rose-600">TECHNOLOGY</span>
+                        </h1>
+                        <p class="text-slate-500 font-medium mb-6">Dhampara, Wasa, Chittagong</p>
+                        <span class="px-5 py-2 border-2 rounded-lg font-bold tracking-widest uppercase text-sm ${titleColor}">
+                            ${docTitle}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-10">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">${isBilling ? 'Billed To' : 'Name / Entity'}</h3>
+                            <div class="text-xl font-bold text-slate-800">${invoice.clientName}</div>
+                            ${invoice.clientEmail ? `<div class="text-slate-500 mt-1"><i class="fas fa-envelope mr-2 text-slate-400"></i>${invoice.clientEmail}</div>` : ''}
+                            ${invoice.clientPhone ? `<div class="text-slate-500 mt-1"><i class="fas fa-phone mr-2 text-slate-400"></i>${invoice.clientPhone}</div>` : ''}
+                        </div>
+                        <div class="text-right bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Voucher No</h3>
+                            <div class="text-lg font-bold text-slate-800 font-mono mb-3">${invoice.id}</div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Date</h3>
+                            <div class="text-base font-medium text-slate-700">${invoice.date}</div>
+                        </div>
+                    </div>
+                    
+                    ${invoice.note ? `
+                    <div class="mb-8 bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                        <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Document Note / Cost Details</h4>
+                        <p class="text-sm text-amber-900">${invoice.note}</p>
+                    </div>` : ''}
+
+                    <table class="w-full mb-10">
+                        <thead>
+                            <tr class="border-b-2 border-slate-800 text-left">
+                                <th class="py-3 text-xs font-bold text-slate-500 uppercase">Description</th>
+                                <th class="py-3 text-xs font-bold text-slate-500 uppercase text-center">Qty</th>
+                                <th class="py-3 text-xs font-bold text-slate-500 uppercase text-right">Rate</th>
+                                <th class="py-3 text-xs font-bold text-slate-500 uppercase text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsList}
+                        </tbody>
+                    </table>
+
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-8">
+                        <div class="w-full md:w-1/2">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Short Terms</h3>
+                            <p class="text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100">${invoice.terms || 'N/A'}</p>
+                        </div>
+                        <div class="w-full md:w-[300px] border border-slate-200 rounded-xl p-5 bg-slate-50/50">
+                            <div class="flex justify-between mb-3 text-sm font-medium text-slate-600">
+                                <span>Subtotal</span>
+                                <span>${formatMoney(invoice.subtotal)}</span>
+                            </div>
+                            ${isBilling ? `
+                            <div class="flex justify-between mb-4 text-sm font-medium text-slate-600">
+                                <span>Tax / VAT</span>
+                                <span>${formatMoney(invoice.tax)}</span>
+                            </div>` : ''}
+                            <div class="flex justify-between items-center border-t border-slate-200 pt-3">
+                                <span class="text-lg font-bold text-slate-800">Total</span>
+                                <span class="text-xl font-extrabold text-primary-600">${formatMoney(invoice.total)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-16 pt-8 border-t border-slate-100 text-center flex justify-between px-10">
+                        <div class="w-40 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">${isBilling ? 'Client Signature' : 'Receiver Signature'}</div>
+                        <div class="w-40 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">Authorized Signature</div>
+                    </div>
+
+                    <!-- Appended Full Terms & Conditions Paper (Prints on new page) -->
+                    ${invoice.includeTC !== false ? `
+                    <div class="print-only-tc border-t-8 border-slate-900 pt-10 bg-white">
+                        <div class="text-center mb-10 pb-6 border-b-2 border-slate-100">
+                            <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">
+                                <span class="text-blue-600">WADI</span> 
+                                <span class="text-emerald-600">IT</span> 
+                                <span class="text-rose-600">TECHNOLOGY</span>
+                            </h1>
+                            <p class="text-slate-500 font-medium mb-6">Dhampara, Wasa, Chittagong</p>
+                            <span class="px-5 py-2 border-2 rounded-lg font-bold tracking-widest uppercase text-sm border-slate-200 text-slate-600 bg-slate-50">
+                                TERMS & CONDITIONS
+                            </span>
+                        </div>
+                        <div class="text-sm text-slate-800 whitespace-pre-wrap leading-loose font-medium px-10">
+                            ${this.state.fullTermsDocument}
+                        </div>
+                        
+                        <div class="mt-24 pt-8 border-t border-slate-100 text-center flex justify-end px-10">
+                            <div class="w-48 border-t-2 border-slate-300 pt-2 text-sm font-bold text-slate-500">Authorized Signature</div>
+                        </div>
+                    </div>` : ''}
+                `;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            closeModal() {
+                document.body.classList.remove('printing-modal');
+                const modal = document.getElementById('voucherModal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
-        
-        window.onload = updateUI;
+
+        const app = new App();
     </script>
 </body>
 </html>
